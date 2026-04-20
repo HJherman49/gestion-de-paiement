@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('diplomes', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_diplome');
+            $table->string('spécialité');
+            $table->string('libelle');
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

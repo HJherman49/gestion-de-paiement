@@ -12,8 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('divisions', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_division');
+            $table->string('Nom_division');
+            $table->string('section')->nullable();
+ 
+            // FK → services
+            $table->unsignedBigInteger('Id_service');
+            $table->foreign('Id_service')
+                  ->references('Id_service')->on('services')
+                  ->cascadeOnUpdate()
+                  ->restrictOnDelete();
+ 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

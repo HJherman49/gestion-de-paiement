@@ -12,9 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('agent_concours', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id');
+            $table->unsignedBigInteger('Id_agent');
+            $table->unsignedBigInteger('Id_concours');
+
+            $table->foreign('Id_agent')
+                ->references('Id_agent')->on('agents')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+
+            $table->foreign('Id_concours')
+                ->references('Id_concours')->on('concours')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+
             $table->timestamps();
-        });
+        }); 
     }
 
     /**

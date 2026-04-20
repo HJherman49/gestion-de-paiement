@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contrats', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_contrat');
+            $table->string('type_contrat', 100)->unique();
+            $table->string('duree', 50);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

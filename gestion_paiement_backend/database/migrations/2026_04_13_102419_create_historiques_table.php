@@ -12,7 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('historiques', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_historique');
+            $table->string('table_concernee');
+            $table->unsignedBigInteger('id_enregistrement');
+            $table->unsignedBigInteger('Id_agent')->nullable();
+            $table->string('type_action'); // create, update, delete
+            $table->timestamp('date_action');
+            $table->string('champ_modifie')->nullable();
+            $table->text('valeur_avant')->nullable();
+            $table->text('valeur_apres')->nullable();
+            $table->string('utilisateur');
+
+            $table->foreign('Id_agent')
+                ->references('Id_agent')->on('agents')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+
             $table->timestamps();
         });
     }

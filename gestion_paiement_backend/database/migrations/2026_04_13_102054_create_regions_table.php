@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('regions', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_region');
+            $table->string('nom_region');
+            $table->string('chef_region');
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

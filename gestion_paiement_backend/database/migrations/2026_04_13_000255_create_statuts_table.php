@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('statuts', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_statut');
+            $table->string('type_statut', 100)->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

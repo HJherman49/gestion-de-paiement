@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('banques', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_banque');
+            $table->string('Nom_banque');
+            $table->string('agence');
+            $table->string('code_banque', 10);
+            $table->string('code_localite_bnq', 10);
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('concours', function (Blueprint $table) {
-            $table->id();
+            $table->id('Id_concours');
+            $table->string('libelle');
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
