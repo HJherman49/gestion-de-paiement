@@ -27,7 +27,7 @@ class StoreEnfantRequest extends FormRequest
             'Nb_enf' => 'required|integer|min:0',
             'Nb_enf_inf_15ans' => 'required|integer|min:0',
             'Nb_enf_sup_15ans' => 'required|integer|min:0',
-            'Id_agent' => 'required|exists:agents,Id_agents',
+            'Id_agent' => 'required|exists:agents,Id_agent',
         ];
     }
 }

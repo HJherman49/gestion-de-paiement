@@ -31,7 +31,7 @@ class StoreFonctionRequest extends FormRequest
             
             
             'Id_direction'     => 'required|exists:directions,Id_Direction',
-            'Id_agents'        => 'required|exists:agents,Id_agents',
+            'Id_agent'        => 'required|exists:agents,Id_agent',
         ];
     }
 }

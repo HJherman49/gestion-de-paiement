@@ -5,14 +5,14 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreBanqueRequest extends FormRequest
+class StoreRegionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -23,10 +23,8 @@ class StoreBanqueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'Nom_banque'        => 'required|string|max:150|unique:banques,Nom_banque',
-            'agence'            => 'required|string|max:100',
-            'code_banque'       => 'required|string|max:10|unique:banques,code_banque',
-            'code_localite_bnq' => 'required|string|max:10',
+            'nom_region'   => 'required|string|max:100|unique:regions,nom_region',
+            'chef_region'  => 'required|string|max:100',
         ];
     }
 }

@@ -15,6 +15,8 @@ use App\Http\Controllers\StatutController;
 use App\Http\Controllers\BaremeController;
 use App\Http\Controllers\BanqueController;
 use App\Http\Controllers\PaieController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\DiplomeController;
 
 Route::apiResource('agents', AgentController::class);
 Route::apiResource('directions', DirectionController::class);
@@ -31,6 +33,7 @@ Route::apiResource('statuts', StatutController::class);
 Route::apiResource('baremes', BaremeController::class);
 Route::apiResource('banques', BanqueController::class);
 Route::apiResource('paies', PaieController::class);
-
-// Route bonus : paies d'un agent
+Route::apiResource('regions', RegionController::class);
+Route::apiResource('diplomes', DiplomeController::class);
+//  paies d'un agent
 Route::get('agents/{id_agent}/paies', [PaieController::class, 'paiesParAgent']);

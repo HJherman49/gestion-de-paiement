@@ -16,7 +16,7 @@ class BanqueResource extends JsonResource
     {
         return [
             'Id_banque'         => $this->Id_banque,
-            'nom_banque'        => $this->nom_banque,
+            'nom_banque'        => $this->Nom_banque,
             'agence'            => $this->agence,
             'code_banque'       => $this->code_banque,
             'code_localite_bnq' => $this->code_localite_bnq,

@@ -29,7 +29,7 @@ class StoreCompteBancaireRequest extends FormRequest
             'CODQEB'       => 'nullable|string',
             'GUICHB'       => 'nullable|string',
             'RIB'          => 'nullable|string',
-            'Id_agents'    => 'required|exists:agents,Id_agents',
+            'Id_agent'    => 'required|exists:agents,Id_agent',
             'Id_banque'    => 'required|exists:banques,Id_banque',
         ];
     }

@@ -35,7 +35,7 @@ class StorePreembaucheRequest extends FormRequest
             'Montant_PreEmb_Contrat'  => 'required|numeric|min:0',
 
             // Clés étrangères
-            'id_agent'                => 'required|exists:agents,id_agents',
+            'Id_agent'                => 'required|exists:agents,Id_agent',
             'Id_contrat'              => 'required|exists:contrats,Id_contrat',
         ];
     }

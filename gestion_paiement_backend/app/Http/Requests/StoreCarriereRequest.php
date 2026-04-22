@@ -29,7 +29,7 @@ class StoreCarriereRequest extends FormRequest
             'classe'      => 'required|string|max:50',
             'echelon'     => 'required|string|max:50',
             'indice'      => 'required|integer|min:1',
-            'Id_agents'   => 'required|exists:agents,Id_agents',
+            'Id_agent'   => 'required|exists:agents,Id_agent',
             'Id_bareme'   => 'required|exists:baremes,Id_bareme',
         ];
     }

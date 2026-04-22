@@ -10,7 +10,7 @@ class AgentResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'Id_agents'          => $this->Id_agents,
+            'Id_agent'          => $this->Id_agent,
             'num_matricule'      => $this->num_matricule,
             'nom'                => $this->nom,
             'prénoms'            => $this->prenoms,
