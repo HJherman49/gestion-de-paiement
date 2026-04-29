@@ -1,49 +1,64 @@
-import { Routes, Route } from "react-router-dom";
+import React, { useState } from 'react'
+import { Navbar } from './components/Navbar'
+import { Dashboard } from './pages/Dashboard'
+import { AgentsPage } from './pages/AgentsPage'
+import { AdminModal } from './components/AdminModal'
 
-import MainLayout from "./views/layouts/MainLayout";
+const App: React.FC = () => {
+  const [activePage, setActivePage] = useState('dashboard')
+  const [showAdmin, setShowAdmin] = useState(false)
 
-import Dashboard from "./views/Dashboard";
-import Agents from "./views/Agents";
-import Paie from "./views/Paie";
-import Recrutement from "./views/Recrutement";
-import RH from "./views/RH";
-import Structure from "./views/Structure";
-import Banque from "./views/Banque";
-import Formation from "./views/Formation";
-import Famille from "./views/Famille";
-import Referentiels from "./views/Referentiels";
-import Historique from "./views/Historique";
-import Settings from "./views/Settings";
+  const renderPage = () => {
+    switch (activePage) {
+      case 'dashboard':
+        return <Dashboard />
+      case 'agents':
+        return <AgentsPage />
+      default:
+        return (
+          <div style={{
+            padding: '60px 32px',
+            textAlign: 'center',
+            color: 'var(--instat-gray-400)',
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
+            <h2 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--instat-dark)', marginBottom: '8px' }}>
+              Page en cours de développement
+            </h2>
+            <p style={{ fontSize: '14px' }}>
+              Cette section sera disponible prochainement.
+            </p>
+            <button
+              onClick={() => setActivePage('dashboard')}
+              style={{
+                marginTop: '24px',
+                padding: '10px 24px',
+                background: 'var(--instat-dark)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'DM Sans, sans-serif',
+              }}
+            >
+              Retour au tableau de bord
+            </button>
+          </div>
+        )
+    }
+  }
 
-// 👇 AJOUT IMPORTANT
-import AgentCreate from "./views/AgentCreate";
-import AgentDetail from "./views/AgentDetail";
-
-export default function App() {
   return (
-    <Routes>
-
-      {/* 🔥 LAYOUT PRINCIPAL */}
-      <Route element={<MainLayout />}>
-
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/agents" element={<Agents />} />
-        <Route path="/agents/create" element={<AgentCreate />} />
-        <Route path="/agents/:id" element={<AgentDetail />} />
-
-        <Route path="/paie" element={<Paie />} />
-        <Route path="/recrutement" element={<Recrutement />} />
-        <Route path="/rh" element={<RH />} />
-        <Route path="/structure" element={<Structure />} />
-        <Route path="/banque" element={<Banque />} />
-        <Route path="/formation" element={<Formation />} />
-        <Route path="/famille" element={<Famille />} />
-        <Route path="/referentiels" element={<Referentiels />} />
-        <Route path="/historique" element={<Historique />} />
-        <Route path="/settings" element={<Settings />} />
-
-      </Route>
-
-    </Routes>
-  );
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--instat-gray-50)' }}>
+      <Navbar activePage={activePage} onNavigate={setActivePage} onOpenAdmin={() => setShowAdmin(true)} />
+      <main style={{ flex: 1 }}>
+        {renderPage()}
+      </main>
+      {showAdmin && <AdminModal onClose={() => setShowAdmin(false)} />}
+    </div>
+  )
 }
+
+export default App

@@ -1,0 +1,127 @@
+import type { Agent, Direction, Service, Division, Statut, Contrat } from '../types/agent'
+
+export const directions: Direction[] = [
+  { Id_Direction: 1, Nom_Direction: 'Direction Générale', Sigle: 'DG', Siege: 'Antananarivo', Faritany: 'Analamanga' },
+  { Id_Direction: 2, Nom_Direction: 'Direction des Systèmes d\'Information', Sigle: 'DSI', Siege: 'Antananarivo', Faritany: 'Analamanga' },
+  { Id_Direction: 3, Nom_Direction: 'Direction des Ressources Humaines', Sigle: 'DRH', Siege: 'Antananarivo', Faritany: 'Analamanga' },
+  { Id_Direction: 4, Nom_Direction: 'Direction des Statistiques Économiques', Sigle: 'DISE', Siege: 'Antananarivo', Faritany: 'Analamanga' },
+  { Id_Direction: 5, Nom_Direction: 'Direction Financière', Sigle: 'DF', Siege: 'Antananarivo', Faritany: 'Analamanga' },
+]
+
+export const services: Service[] = [
+  { Id_service: 1, Nom_service: 'Service Informatique', Id_direction: 2 },
+  { Id_service: 2, Nom_service: 'Service Réseau', Id_direction: 2 },
+  { Id_service: 3, Nom_service: 'Service Recrutement', Id_direction: 3 },
+  { Id_service: 4, Nom_service: 'Service Paie', Id_direction: 3 },
+  { Id_service: 5, Nom_service: 'Service Comptabilité', Id_direction: 5 },
+  { Id_service: 6, Nom_service: 'Service Statistiques', Id_direction: 4 },
+]
+
+export const divisions: Division[] = [
+  { Id_division: 1, nom_division: 'Division Développement', section: 'Web', Id_service: 1 },
+  { Id_division: 2, nom_division: 'Division Infrastructure', section: 'Serveurs', Id_service: 2 },
+  { Id_division: 3, nom_division: 'Division Administration RH', section: 'Gestion', Id_service: 3 },
+  { Id_division: 4, nom_division: 'Division Traitement Paie', section: 'Calcul', Id_service: 4 },
+]
+
+export const statuts: Statut[] = [
+  { Id_statut: 1, type_statut: 'Fonctionnaire' },
+  { Id_statut: 2, type_statut: 'Contractuel' },
+  { Id_statut: 3, type_statut: 'Stagiaire' },
+  { Id_statut: 4, type_statut: 'Vacataire' },
+]
+
+export const contrats: Contrat[] = [
+  { Id_contrat: 1, type_contrat: 'CDI', duree: 'Indéterminée' },
+  { Id_contrat: 2, type_contrat: 'CDD', duree: '12 mois' },
+  { Id_contrat: 3, type_contrat: 'Stage', duree: '6 mois' },
+  { Id_contrat: 4, type_contrat: 'Vacation', duree: '3 mois' },
+]
+
+export const agents: Agent[] = [
+  {
+    id_agents: 1,
+    num_matricule: 'MAT-001',
+    nom: 'RAKOTO',
+    prenoms: 'Jean Pierre',
+    adresse: 'Lot II A 45 Antananarivo',
+    N_CIN: '101 234 567 890',
+    date_de_naissance: '1985-03-15',
+    sexe: 'M',
+    date_entree_admin: '2010-01-10',
+    date_delivrance_CI: '2010-05-20',
+    lieu_delivrance_CI: 'Antananarivo',
+    civilite: 'M.',
+    tel: '034 12 345 67',
+    Id_direction: 2, Id_service: 1, Id_division: 1, Id_statut: 1, Id_contrat: 1,
+    direction: directions[1], service: services[0], division: divisions[0], statut: statuts[0], contrat: contrats[0],
+  },
+  {
+    id_agents: 2,
+    num_matricule: 'MAT-002',
+    nom: 'RABE',
+    prenoms: 'Marie Hélène',
+    adresse: 'Lot IV B 12 Antananarivo',
+    N_CIN: '101 987 654 321',
+    date_de_naissance: '1990-07-22',
+    sexe: 'F',
+    date_entree_admin: '2015-03-01',
+    date_delivrance_CI: '2015-01-10',
+    lieu_delivrance_CI: 'Antananarivo',
+    civilite: 'Mme',
+    tel: '033 45 678 90',
+    Id_direction: 3, Id_service: 3, Id_division: 3, Id_statut: 2, Id_contrat: 2,
+    direction: directions[2], service: services[2], division: divisions[2], statut: statuts[1], contrat: contrats[1],
+  },
+  {
+    id_agents: 3,
+    num_matricule: 'MAT-003',
+    nom: 'ANDRIANTSOA',
+    prenoms: 'Paul Emmanuel',
+    adresse: 'Rue de l\'Indépendance Fianarantsoa',
+    N_CIN: '301 111 222 333',
+    date_de_naissance: '1998-11-05',
+    sexe: 'M',
+    date_entree_admin: '2023-09-01',
+    date_delivrance_CI: '2022-06-15',
+    lieu_delivrance_CI: 'Fianarantsoa',
+    civilite: 'M.',
+    tel: '032 98 765 43',
+    Id_direction: 5, Id_service: 5, Id_division: 4, Id_statut: 3, Id_contrat: 3,
+    direction: directions[4], service: services[4], division: divisions[3], statut: statuts[2], contrat: contrats[2],
+  },
+  {
+    id_agents: 4,
+    num_matricule: 'MAT-004',
+    nom: 'RASOA',
+    prenoms: 'Hanta Volatiana',
+    adresse: 'Villa Les Fleurs Ambohijatovo',
+    N_CIN: '101 444 555 666',
+    date_de_naissance: '1982-01-30',
+    sexe: 'F',
+    date_entree_admin: '2005-07-15',
+    date_delivrance_CI: '2005-03-01',
+    lieu_delivrance_CI: 'Antananarivo',
+    civilite: 'Mme',
+    tel: '020 22 123 45',
+    Id_direction: 1, Id_service: 3, Id_division: 3, Id_statut: 1, Id_contrat: 1,
+    direction: directions[0], service: services[2], division: divisions[2], statut: statuts[0], contrat: contrats[0],
+  },
+  {
+    id_agents: 5,
+    num_matricule: 'MAT-005',
+    nom: 'RAKOTONDRABE',
+    prenoms: 'Luc Olivier',
+    adresse: 'Cité Universitaire Antananarivo',
+    N_CIN: '101 777 888 999',
+    date_de_naissance: '2000-05-18',
+    sexe: 'M',
+    date_entree_admin: '2024-01-15',
+    date_delivrance_CI: '2023-09-10',
+    lieu_delivrance_CI: 'Antananarivo',
+    civilite: 'M.',
+    tel: '038 55 444 33',
+    Id_direction: 4, Id_service: 6, Id_division: 1, Id_statut: 4, Id_contrat: 4,
+    direction: directions[3], service: services[5], division: divisions[0], statut: statuts[3], contrat: contrats[3],
+  },
+]
