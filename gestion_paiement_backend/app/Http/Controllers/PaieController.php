@@ -19,7 +19,9 @@ class PaieController extends Controller
                      ->latest()
                      ->paginate(20);
 
-        return PaieResource::collection($paies);
+        return 
+            PaieResource::collection($paies);
+        
     }
 
     /**

@@ -1,7 +1,8 @@
 // Types basés sur le MLD SIRH-INSTAT
 
 export type Sexe = 'M' | 'F'
-export type Civilite = 'M.' | 'Mme' | 'Mlle'
+export type Civilite = 'Mr' | 'Mme' | 'Melle'
+
 export type TypeStatut = 'Fonctionnaire' | 'Contractuel' | 'Stagiaire' | 'Vacataire'
 
 export interface Region {
@@ -11,22 +12,22 @@ export interface Region {
 }
 
 export interface Direction {
-  Id_Direction: number
-  Nom_Direction: string
-  Sigle?: string
-  Siege?: string
-  Faritany?: string
+  Id_direction: number
+  nom_direction: string
+  sigle?: string
+  siege?: string
+  faritany?: string
 }
 
 export interface Service {
   Id_service: number
-  Nom_service: string
+  nom_service: string
   Id_direction: number
 }
 
 export interface Division {
   Id_division: number
-  nom_division: string
+  Nom_division: string
   section?: string
   Id_service: number
 }
@@ -43,20 +44,25 @@ export interface Contrat {
 }
 
 export interface Agent {
-  id_agents: number
+  Id_agent: number
   num_matricule: string
   nom: string
   prenoms: string
   adresse?: string
   N_CIN?: string
-  date_de_naissance?: string
+  date_naissance?: string
   sexe?: Sexe
   date_entree_admin?: string
   date_delivrance_CI?: string
   lieu_delivrance_CI?: string
   civilite?: Civilite
   tel?: string
+  mail?: string
   porte?: string
+  categ_retraite?: string | null
+  N_Cnaps?: string | null
+  pp_gale?: number
+  date_retraite?: string | null
   // FK
   Id_direction?: number
   Id_service?: number
@@ -71,4 +77,10 @@ export interface Agent {
   contrat?: Contrat
 }
 
-export type AgentFormData = Omit<Agent, 'id_agents' | 'direction' | 'service' | 'division' | 'statut' | 'contrat'>
+export type AgentFormData = Omit<Agent, 'Id_agent' | 'direction' | 'service' | 'division' | 'statut' | 'contrat'> & {
+  Id_direction?: number | string
+  Id_service?: number | string
+  Id_division?: number | string
+  Id_statut?: number | string
+  Id_contrat?: number | string
+}

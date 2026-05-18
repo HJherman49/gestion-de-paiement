@@ -11,7 +11,7 @@ class DivisionController extends Controller
 {
     public function index()
     {
-        $divisions = Division::with('service.direction')->paginate(20);
+        $divisions = Division::with('service.direction')->get();
         return DivisionResource::collection($divisions);
     }
 

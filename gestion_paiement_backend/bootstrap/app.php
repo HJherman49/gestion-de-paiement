@@ -11,9 +11,27 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
+    ->withMiddleware(function (Middleware $middleware) {
+
+        // Configuration importante pour Sanctum + React
+        // $middleware->api(prepend: [
+        //     \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        // ]);
+
+        // Apply custom CSRF middleware to web routes
+        $middleware->web(replace: [
+            \App\Http\Middleware\VerifyCsrfToken::class,
+        ]);
+
+        // Add CORS middleware globally
+        $middleware->use([\Illuminate\Http\Middleware\HandleCors::class]);
+
+        // Alias middleware
+        $middleware->alias([
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        ]);
+
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        // 
-    })->create();
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    });

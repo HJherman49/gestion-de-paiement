@@ -1,24 +1,36 @@
 import React, { useState } from 'react'
 import { Search, Bell, ChevronDown, Plus } from 'lucide-react'
+import '../styles/components/Navbar.css'
 
 interface NavbarProps {
   activePage: string
   onNavigate: (page: string) => void
   onOpenAdmin: () => void
+  user?: any
+  onLogout?: () => void
 }
 
 const NAV_ITEMS: { id: string; label: string; children?: string[] }[] = [
   { id: 'dashboard', label: 'Tableau de bord' },
   { id: 'agents', label: 'Agents' },
-  { id: 'recrutement', label: 'Recrutement' },
-  { id: 'carriere', label: 'Carrière & Paie' },
-  { id: 'services', label: 'Services & Ressources' },
-  { id: 'about', label: 'Qui sommes-nous ?' },
+  { id: 'bareme', label: 'Bareme' },
+  { id: 'carriere', label: 'Carrière' },
+  { id: 'reclassement', label: 'Reclassement' },
+  { id: 'paie', label: 'Paiement' },
+  { id: 'banque', label: 'Banque' },
+  { id: 'fonction', label: 'Fonction' },
+  { id: 'preembauche', label: 'Préembauche' },
+ // { id: 'about', label: 'Qui sommes-nous ?' },
 ]
 
-const QUICK_LINKS = ['Actualités', 'Historique', 'Paramètres', 'Contact']
+const QUICK_LINKS : {id: string; label: string; children?: string[]}[] = [
+  { id: 'actualite', label: 'Actualités' },
+  { id: 'historique', label: 'Historique' },
+  { id: 'parametres', label: 'Paramètres' },
+  { id: 'contact', label: 'Contact' }
+]
 
-export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAdmin }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAdmin, user, onLogout }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [searchValue, setSearchValue] = useState('')
 
@@ -35,18 +47,19 @@ export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAd
         gap: 0,
       }}>
         {QUICK_LINKS.map((link, i) => (
-          <a key={link} style={{
-            color: 'rgba(255,255,255,0.7)',
-            fontSize: '12px',
-            padding: '0 14px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer',
-            borderLeft: i === 0 ? '1px solid rgba(255,255,255,0.12)' : 'none',
-            borderRight: '1px solid rgba(255,255,255,0.12)',
-            textDecoration: 'none',
-            transition: 'color 0.15s, background 0.15s',
+          <a key={link.id} onClick={() => onNavigate(link.id)}
+            style={{
+              color: 'rgba(255,255,255,0.7)',
+              fontSize: '12px',
+              padding: '0 14px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+              borderLeft: i === 0 ? '1px solid rgba(255,255,255,0.12)' : 'none',
+              borderRight: '1px solid rgba(255,255,255,0.12)',
+              textDecoration: 'none',
+              transition: 'color 0.15s, background 0.15s',
           }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLElement).style.color = '#fff'
@@ -57,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAd
               ;(e.currentTarget as HTMLElement).style.background = 'transparent'
             }}
           >
-            {link}
+            {link.label}
           </a>
         ))}
 
@@ -247,15 +260,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAd
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--instat-dark)' }}>Admin</div>
-              <div style={{ fontSize: '11px', color: 'var(--instat-gray-400)' }}>Administrateur</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--instat-dark)' }}>{user?.name || 'Admin'}</div>
+              <div style={{ fontSize: '11px', color: 'var(--instat-gray-400)' }}>{user?.email || 'Administrateur'}</div>
             </div>
-            <div style={{
-              width: '36px', height: '36px', borderRadius: '50%',
-              background: 'var(--instat-dark)', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '13px', fontWeight: 600, cursor: 'pointer',
-            }}>A</div>
+            <div
+              style={{
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'var(--instat-dark)', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+              }}
+              onClick={onLogout}
+              title="Se déconnecter"
+            >
+              {(user?.name || 'A').charAt(0).toUpperCase()}
+            </div>
           </div>
         </div>
       </nav>

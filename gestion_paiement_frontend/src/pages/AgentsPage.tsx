@@ -1,27 +1,81 @@
-import React, { useState, useMemo } from 'react'
-import { Search, Plus, Eye, Pencil, Trash2, Filter, Download, X } from 'lucide-react'
-import type { Agent, AgentFormData } from '../types/agent'
-import { agents as initialAgents, statuts } from '../data/agentsData'
+import React, { useState, useMemo, useEffect } from 'react'
+import { Search, Plus, Eye, Pencil, Trash2, Filter, Download, X, Phone, MapPin, Calendar, CreditCard, Building2, Layers, GitBranch, GraduationCap, Baby, Shield, FileText, ChevronRight, User } from 'lucide-react'
+import type { Agent, AgentFormData, Statut } from '../types/agent'
 import { AgentForm } from '../components/AgentForm'
+import { getAgents, getStatuts, createAgent, updateAgent, deleteAgent } from '../services/agentService'
+import api from '../services/api'
+import '../styles/pages/AgentsPage.css'
 
-const STATUT_COLORS: Record<string, { bg: string; color: string }> = {
-  Fonctionnaire: { bg: '#1a1f3c18', color: '#1a1f3c' },
-  Contractuel:   { bg: '#27ae6018', color: '#27ae60' },
-  Stagiaire:     { bg: '#f39c1218', color: '#d68910' },
-  Vacataire:     { bg: '#c0392b18', color: '#c0392b' },
+
+const STATUT_CLASSES: Record<string, string> = {
+  Fonctionnaire: 'badge-fonctionnaire',
+  Contractuel:   'badge-contractuel',
+  Stagiaire:     'badge-stagiaire',
+  Vacataire:     'badge-vacataire',
 }
 
 export const AgentsPage: React.FC = () => {
-  const [agentsList, setAgentsList] = useState<Agent[]>(initialAgents)
-  const [search, setSearch] = useState('')
+  const [agentsList, setAgentsList] = useState<Agent[]>([])
+  const [statutes, setStatutes]     = useState<Statut[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [search, setSearch]         = useState('')
   const [filterStatut, setFilterStatut] = useState<number | ''>('')
-  const [showForm, setShowForm] = useState(false)
-  const [editAgent, setEditAgent] = useState<Agent | null>(null)
-  const [viewAgent, setViewAgent] = useState<Agent | null>(null)
-  const [page, setPage] = useState(1)
+  const [showForm, setShowForm]     = useState(false)
+  const [editAgent, setEditAgent]   = useState<Agent | null>(null)
+  const [viewAgent, setViewAgent]   = useState<Agent | null>(null)
+  const [page, setPage]             = useState(1)
+  const [agentEnfants, setAgentEnfants] = useState<any[]>([])
+  const [loadingEnfants, setLoadingEnfants] = useState(false)
+  const [activeTab, setActiveTab]   = useState<'infos' | 'enfants' | 'affectation'>('infos')
   const PER_PAGE = 10
 
-  // Filtrage
+  // ── Chargement agents ──────────────────────────────────────────────────────
+  const loadAgents = async () => {
+    try {
+      setLoading(true)
+      const response = await getAgents({
+        search:    search || undefined,
+        Id_statut: filterStatut || undefined,
+      })
+      setAgentsList(response.data.data || [])
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des agents:', error)
+      alert('Impossible de charger les agents. Vérifiez que le serveur Laravel est démarré.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { loadAgents() }, [search, filterStatut])
+
+  // ── Charger les enfants d'un agent ────────────────────────────────────────
+  const loadEnfants = async (agentId: number) => {
+    setLoadingEnfants(true)
+    setAgentEnfants([])
+    try {
+      const res = await api.get(`/agents/${agentId}/enfants`)
+      setAgentEnfants(res.data.data ?? res.data ?? [])
+    } catch {
+      setAgentEnfants([])
+    } finally {
+      setLoadingEnfants(false)
+    }
+  }
+
+  // ── Chargement statuts ────────────────────────────────────────────────────
+  useEffect(() => {
+    const loadStatutes = async () => {
+      try {
+        const response = await getStatuts()
+        setStatutes(response.data.data || response.data || [])
+      } catch (error: any) {
+        console.error('Erreur lors du chargement des statuts:', error)
+      }
+    }
+    loadStatutes()
+  }, [])
+
+  // ── Filtrage local + pagination ───────────────────────────────────────────
   const filtered = useMemo(() => {
     return agentsList.filter(a => {
       const q = search.toLowerCase()
@@ -35,239 +89,162 @@ export const AgentsPage: React.FC = () => {
     })
   }, [agentsList, search, filterStatut])
 
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  const paginated  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
 
-  const handleSave = (data: AgentFormData) => {
-    if (editAgent) {
-      setAgentsList(prev => prev.map(a =>
-        a.id_agents === editAgent.id_agents ? { ...a, ...data } : a
-      ))
-    } else {
-      const newId = Math.max(...agentsList.map(a => a.id_agents)) + 1
-      setAgentsList(prev => [...prev, { ...data, id_agents: newId }])
+  // ── Sauvegarde ────────────────────────────────────────────────────────────
+  const handleSave = async (data: AgentFormData) => {
+    try {
+      let savedAgent: any = null
+      if (editAgent) {
+        const res = await updateAgent(editAgent.Id_agent, data)
+        savedAgent = res.data.data ?? res.data
+        alert('Agent modifié avec succès')
+      } else {
+        const res = await createAgent(data)
+        savedAgent = res.data.data ?? res.data
+        alert('Agent créé avec succès')
+      }
+      loadAgents()
+      setShowForm(false)
+      setEditAgent(null)
+      return savedAgent
+    } catch (error: any) {
+      console.error(error)
+      const validationErrors = error.response?.data?.errors
+      if (validationErrors) {
+        const messages = Object.entries(validationErrors)
+          .map(([field, msgs]) => `• ${field} : ${(msgs as string[]).join(', ')}`)
+          .join('\n')
+        alert('Erreurs de validation :\n' + messages)
+      } else {
+        alert(error.response?.data?.message || "Une erreur est survenue lors de l'enregistrement")
+      }
+      throw error
     }
-    setShowForm(false)
-    setEditAgent(null)
   }
 
-  const handleDelete = (id: number) => {
-    if (confirm('Voulez-vous vraiment supprimer cet agent ?')) {
-      setAgentsList(prev => prev.filter(a => a.id_agents !== id))
+  // ── Suppression ───────────────────────────────────────────────────────────
+  const handleDelete = async (id: number) => {
+    if (!confirm('Voulez-vous vraiment supprimer cet agent ?')) return
+    try {
+      await deleteAgent(id)
+      alert('Agent supprimé avec succès')
+      loadAgents()
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erreur lors de la suppression')
     }
   }
 
-  const openEdit = (agent: Agent) => {
-    setEditAgent(agent)
-    setShowForm(true)
-  }
+  const openEdit = (agent: Agent) => { setEditAgent(agent); setShowForm(true) }
+  const openAdd  = () => { setEditAgent(null); setShowForm(true) }
 
-  const openAdd = () => {
-    setEditAgent(null)
-    setShowForm(true)
+  const openView = (agent: Agent) => {
+    setViewAgent(agent)
+    setActiveTab('infos')
+    loadEnfants(agent.Id_agent)
   }
 
   return (
-    <div style={{ padding: '28px 32px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="ap-page">
+
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div className="ap-header">
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--instat-dark)', marginBottom: '4px' }}>
-            Agents
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--instat-gray-400)' }}>
+          <h1 className="ap-title">Agents</h1>
+          <p className="ap-subtitle">
             {agentsList.length} agents enregistrés · {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button style={{
-            padding: '9px 16px', borderRadius: '8px',
-            border: '1px solid var(--instat-gray-200)',
-            background: '#fff', fontSize: '13px',
-            color: 'var(--instat-gray-600)', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '6px',
-            fontFamily: 'DM Sans, sans-serif',
-          }}>
+        <div className="ap-header-actions">
+          <button className="ap-btn-secondary">
             <Download size={14} /> Exporter
           </button>
-          <button
-            onClick={openAdd}
-            style={{
-              padding: '9px 18px', borderRadius: '8px',
-              border: 'none', background: 'var(--instat-dark)',
-              color: '#fff', fontSize: '13px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '8px',
-              fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
-            }}>
+          <button className="ap-btn-primary" onClick={openAdd}>
             <Plus size={15} /> Nouvel agent
           </button>
         </div>
       </div>
 
       {/* Filtres */}
-      <div style={{
-        background: '#fff',
-        border: '1px solid var(--instat-gray-200)',
-        borderRadius: '12px',
-        padding: '16px 20px',
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'center',
-        marginBottom: '16px',
-      }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <Search size={14} style={{
-            position: 'absolute', left: '12px', top: '50%',
-            transform: 'translateY(-50%)', color: 'var(--instat-gray-400)',
-          }} />
+      <div className="ap-filters">
+        <div className="ap-search-box">
+          <Search className="ap-search-icon" size={14} />
           <input
             type="text"
+            className="ap-search-input"
             placeholder="Rechercher par nom, matricule, CIN..."
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1) }}
-            style={{
-              width: '100%', padding: '9px 12px 9px 36px',
-              border: '1px solid var(--instat-gray-200)',
-              borderRadius: '8px', fontSize: '13px',
-              color: 'var(--instat-dark)', outline: 'none',
-              fontFamily: 'DM Sans, sans-serif',
-            }}
           />
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="ap-filter-select">
           <Filter size={14} color="var(--instat-gray-400)" />
           <select
             value={filterStatut}
             onChange={e => { setFilterStatut(e.target.value === '' ? '' : Number(e.target.value)); setPage(1) }}
-            style={{
-              padding: '9px 12px', border: '1px solid var(--instat-gray-200)',
-              borderRadius: '8px', fontSize: '13px', color: 'var(--instat-dark)',
-              outline: 'none', fontFamily: 'DM Sans, sans-serif', cursor: 'pointer',
-            }}
+            aria-label="Filtrer par statut"
           >
             <option value="">Tous les statuts</option>
-            {statuts.map(s => (
+            {statutes.map(s => (
               <option key={s.Id_statut} value={s.Id_statut}>{s.type_statut}</option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Table */}
-      <div style={{
-        background: '#fff',
-        border: '1px solid var(--instat-gray-200)',
-        borderRadius: '12px',
-        overflow: 'hidden',
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      {/* Tableau */}
+      <div className="ap-table-wrapper">
+        <table className="ap-table">
           <thead>
-            <tr style={{ background: 'var(--instat-gray-50)', borderBottom: '1px solid var(--instat-gray-200)' }}>
+            <tr>
               {['Matricule', 'Nom & Prénoms', 'CIN', 'Direction', 'Service', 'Statut', 'Tél', 'Actions'].map(h => (
-                <th key={h} style={{
-                  padding: '12px 16px', textAlign: 'left',
-                  fontSize: '11px', fontWeight: 700,
-                  color: 'var(--instat-gray-400)',
-                  textTransform: 'uppercase', letterSpacing: '0.8px',
-                  whiteSpace: 'nowrap',
-                }}>{h}</th>
+                <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {paginated.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan={8} style={{ padding: '40px', textAlign: 'center', color: 'var(--instat-gray-400)', fontSize: '14px' }}>
-                  Aucun agent trouvé
+                <td colSpan={8} className="ap-empty">
+                  <span className="ap-spinner" /> Chargement...
                 </td>
+              </tr>
+            ) : paginated.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="ap-empty">Aucun agent trouvé</td>
               </tr>
             ) : paginated.map((agent, i) => {
               const statutInfo = agent.statut?.type_statut
-              const colors = statutInfo ? STATUT_COLORS[statutInfo] : { bg: '#f0f0f0', color: '#666' }
+              const badgeClass = statutInfo ? (STATUT_CLASSES[statutInfo] ?? 'badge-default') : ''
               return (
                 <tr
-                  key={agent.id_agents}
-                  style={{
-                    borderBottom: '1px solid var(--instat-gray-100)',
-                    background: i % 2 === 0 ? '#fff' : 'var(--instat-gray-50)',
-                    transition: 'background 0.1s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#f0f4ff'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? '#fff' : 'var(--instat-gray-50)'}
+                  key={agent.Id_agent}
+                  className={`ap-row ${i % 2 === 0 ? 'ap-row-even' : 'ap-row-odd'}`}
                 >
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{
-                      fontFamily: 'DM Mono, monospace',
-                      fontSize: '12px', fontWeight: 600,
-                      color: 'var(--instat-dark)',
-                      background: 'var(--instat-gray-100)',
-                      padding: '3px 8px', borderRadius: '4px',
-                    }}>{agent.num_matricule}</span>
+                  <td><span className="ap-matricule">{agent.num_matricule}</span></td>
+                  <td>
+                    <div className="ap-agent-name">{agent.civilite} {agent.nom}</div>
+                    <div className="ap-agent-prenoms">{agent.prenoms}</div>
                   </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--instat-dark)' }}>
-                      {agent.civilite} {agent.nom}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--instat-gray-400)' }}>{agent.prenoms}</div>
+                  <td className="ap-cell-mono">{agent.N_CIN ?? '—'}</td>
+                  <td className="ap-cell-gray">{agent.direction?.sigle ?? '—'}</td>
+                  <td className="ap-cell-gray">{agent.service?.nom_service ?? '—'}</td>
+                  <td>
+                    {statutInfo
+                      ? <span className={`ap-badge ${badgeClass}`}>{statutInfo}</span>
+                      : '—'}
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--instat-gray-600)', fontFamily: 'DM Mono, monospace' }}>
-                    {agent.N_CIN ?? '—'}
-                  </td>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--instat-gray-600)' }}>
-                    {agent.direction?.Sigle ?? '—'}
-                  </td>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--instat-gray-600)' }}>
-                    {agent.service?.Nom_service ?? '—'}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {statutInfo ? (
-                      <span style={{
-                        padding: '3px 10px', borderRadius: '20px',
-                        fontSize: '11px', fontWeight: 600,
-                        background: colors.bg, color: colors.color,
-                      }}>{statutInfo}</span>
-                    ) : '—'}
-                  </td>
-                  <td style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--instat-gray-600)' }}>
-                    {agent.tel ?? '—'}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button
-                        onClick={() => setViewAgent(agent)}
-                        title="Voir"
-                        style={{
-                          width: '30px', height: '30px', borderRadius: '6px',
-                          border: '1px solid var(--instat-gray-200)',
-                          background: '#fff', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: 'var(--instat-gray-600)',
-                        }}>
+                  <td className="ap-cell-gray">{agent.tel ?? '—'}</td>
+                  <td>
+                    <div className="ap-actions">
+                      <button className="ap-icon-btn" title="Voir" onClick={() => openView(agent)}>
                         <Eye size={13} />
                       </button>
-                      <button
-                        onClick={() => openEdit(agent)}
-                        title="Modifier"
-                        style={{
-                          width: '30px', height: '30px', borderRadius: '6px',
-                          border: '1px solid #2980b920',
-                          background: '#2980b910', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#2980b9',
-                        }}>
+                      <button className="ap-icon-btn ap-icon-btn--edit" title="Modifier" onClick={() => openEdit(agent)}>
                         <Pencil size={13} />
                       </button>
-                      <button
-                        onClick={() => handleDelete(agent.id_agents)}
-                        title="Supprimer"
-                        style={{
-                          width: '30px', height: '30px', borderRadius: '6px',
-                          border: '1px solid #c0392b20',
-                          background: '#c0392b10', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: 'var(--instat-red)',
-                        }}>
+                      <button className="ap-icon-btn ap-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(agent.Id_agent)}>
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -280,101 +257,234 @@ export const AgentsPage: React.FC = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div style={{
-            padding: '14px 20px',
-            borderTop: '1px solid var(--instat-gray-200)',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            background: 'var(--instat-gray-50)',
-          }}>
-            <span style={{ fontSize: '12px', color: 'var(--instat-gray-400)' }}>
+          <div className="ap-pagination">
+            <span className="ap-pagination-info">
               Page {page} sur {totalPages} · {filtered.length} résultats
             </span>
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div className="ap-pagination-buttons">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                <button key={p} onClick={() => setPage(p)} style={{
-                  width: '32px', height: '32px', borderRadius: '6px',
-                  border: '1px solid',
-                  borderColor: p === page ? 'var(--instat-dark)' : 'var(--instat-gray-200)',
-                  background: p === page ? 'var(--instat-dark)' : '#fff',
-                  color: p === page ? '#fff' : 'var(--instat-gray-600)',
-                  fontSize: '12px', cursor: 'pointer', fontWeight: p === page ? 700 : 400,
-                  fontFamily: 'DM Sans, sans-serif',
-                }}>{p}</button>
+                <button
+                  key={p}
+                  className={`ap-page-btn ${p === page ? 'active' : ''}`}
+                  aria-label={`Aller à la page ${p}`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
               ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* Modal fiche agent */}
+      {/* Modal fiche agent  */}
       {viewAgent && (
-        <div style={{
-          position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.45)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, backdropFilter: 'blur(2px)',
-        }}>
-          <div style={{
-            background: '#fff', borderRadius: '16px',
-            width: '560px', overflow: 'hidden',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
-          }}>
-            {/* Header fiche */}
-            <div style={{ background: 'var(--instat-dark)', padding: '24px', display: 'flex', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{
-                  width: '52px', height: '52px', borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.15)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '20px', fontWeight: 700, color: '#fff',
-                }}>
-                  {viewAgent.nom.charAt(0)}
+        <div className="ap-modal-overlay">
+          <div className="ap-modal ap-modal--large">
+
+            {/* Header avec avatar et infos principales */}
+            <div className="ap-modal-header-v2">
+              <div className="ap-modal-avatar-v2">
+                {viewAgent.nom.charAt(0)}{viewAgent.prenoms.charAt(0)}
+              </div>
+              <div className="ap-modal-identity">
+                <div className="ap-modal-fullname">
+                  {viewAgent.civilite} {viewAgent.nom} {viewAgent.prenoms}
                 </div>
-                <div>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
-                    {viewAgent.civilite} {viewAgent.nom} {viewAgent.prenoms}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', marginTop: '2px' }}>
-                    {viewAgent.num_matricule} · {viewAgent.statut?.type_statut}
-                  </div>
+                <div className="ap-modal-matricule">
+                  <CreditCard size={12} /> {viewAgent.num_matricule}
+                </div>
+                <div className="ap-modal-badges">
+                  {viewAgent.statut && (
+                    <span className={`ap-badge ${STATUT_CLASSES[viewAgent.statut.type_statut] ?? 'badge-default'}`}>
+                      {viewAgent.statut.type_statut}
+                    </span>
+                  )}
+                  {viewAgent.contrat && (
+                    <span className="ap-badge-contrat">{viewAgent.contrat.type_contrat}</span>
+                  )}
+                  <span className="ap-badge-sexe">{viewAgent.sexe === 'M' ? '♂ Homme' : '♀ Femme'}</span>
                 </div>
               </div>
-              <button onClick={() => setViewAgent(null)} style={{
-                background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px',
-                width: '32px', height: '32px', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
-              }}><X size={16} /></button>
+              <button className="ap-modal-close" onClick={() => setViewAgent(null)} title="Fermer">
+                <X size={16} />
+              </button>
             </div>
 
-            {/* Détails */}
-            <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Onglets */}
+            <div className="ap-modal-tabs">
               {[
-                { label: 'CIN', value: viewAgent.N_CIN },
-                { label: 'Date de naissance', value: viewAgent.date_de_naissance },
-                { label: 'Date entrée admin', value: viewAgent.date_entree_admin },
-                { label: 'Téléphone', value: viewAgent.tel },
-                { label: 'Adresse', value: viewAgent.adresse },
-                { label: 'Direction', value: viewAgent.direction?.Nom_Direction },
-                { label: 'Service', value: viewAgent.service?.Nom_service },
-                { label: 'Division', value: viewAgent.division?.nom_division },
-                { label: 'Contrat', value: viewAgent.contrat?.type_contrat },
-                { label: 'Lieu délivrance CIN', value: viewAgent.lieu_delivrance_CI },
-              ].map(({ label, value }) => (
-                <div key={label}>
-                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--instat-gray-400)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '3px' }}>{label}</div>
-                  <div style={{ fontSize: '13px', color: 'var(--instat-dark)', fontWeight: 500 }}>{value ?? '—'}</div>
-                </div>
+                { key: 'infos',      label: 'Informations', icon: <Shield size={13} /> },
+                { key: 'affectation',label: 'Affectation',  icon: <Building2 size={13} /> },
+                { key: 'enfants',    label: 'Enfants',      icon: <Baby size={13} /> },
+              ].map(t => (
+                <button
+                  key={t.key}
+                  className={`ap-modal-tab ${activeTab === t.key ? 'active' : ''}`}
+                  onClick={() => setActiveTab(t.key as any)}
+                >
+                  {t.icon} {t.label}
+                </button>
               ))}
             </div>
 
-            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--instat-gray-200)', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button onClick={() => { setViewAgent(null); openEdit(viewAgent) }} style={{
-                padding: '9px 18px', borderRadius: '8px',
-                border: 'none', background: 'var(--instat-dark)',
-                color: '#fff', fontSize: '13px', cursor: 'pointer',
-                fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
-                display: 'flex', alignItems: 'center', gap: '6px',
-              }}>
+            {/* Corps */}
+            <div className="ap-modal-body-v2">
+
+              {/* ── ONGLET INFOS ── */}
+              {activeTab === 'infos' && (
+                <div className="ap-modal-sections">
+                  {/* Identité */}
+                  <div className="ap-modal-section">
+                    <p className="ap-modal-section-title"><User size={13} /> Identité</p>
+                    <div className="ap-modal-grid-3">
+                      {[
+                        { label: 'Date de naissance',    value: viewAgent.date_naissance,   icon: <Calendar size={11} /> },
+                        { label: 'CIN',                   value: viewAgent.N_CIN,             icon: <CreditCard size={11} /> },
+                        { label: 'Date délivrance CIN',   value: viewAgent.date_delivrance_CI },
+                        { label: 'Lieu délivrance CIN',   value: viewAgent.lieu_delivrance_CI },
+                        { label: 'Téléphone',             value: viewAgent.tel,               icon: <Phone size={11} /> },
+                        { label: 'Adresse',               value: viewAgent.adresse,           icon: <MapPin size={11} />, full: true },
+                      ].map(({ label, value, icon, full }) => (
+                        <div key={label} className={`ap-modal-field-v2 ${full ? 'ap-modal-field-v2--full' : ''}`}>
+                          <div className="ap-modal-field-label-v2">{icon && <span>{icon}</span>}{label}</div>
+                          <div className="ap-modal-field-value-v2">{value ?? '—'}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Administratif */}
+                  <div className="ap-modal-section">
+                    <p className="ap-modal-section-title"><FileText size={13} /> Administratif</p>
+                    <div className="ap-modal-grid-3">
+                      {[
+                        { label: 'Date entrée administration', value: viewAgent.date_entree_admin, icon: <Calendar size={11} /> },
+                        { label: 'Statut',                      value: viewAgent.statut?.type_statut },
+                        { label: 'Type de contrat',             value: viewAgent.contrat?.type_contrat },
+                      ].map(({ label, value, icon }) => (
+                        <div key={label} className="ap-modal-field-v2">
+                          <div className="ap-modal-field-label-v2">{icon && <span>{icon}</span>}{label}</div>
+                          <div className="ap-modal-field-value-v2">{value ?? '—'}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── ONGLET AFFECTATION ── */}
+              {activeTab === 'affectation' && (
+                <div className="ap-modal-sections">
+                  <div className="ap-modal-section">
+                    <p className="ap-modal-section-title"><Building2 size={13} /> Affectation organisationnelle</p>
+
+                    {/* Breadcrumb direction → service → division */}
+                    <div className="ap-modal-breadcrumb">
+                      <div className="ap-modal-bc-item ap-modal-bc-item--direction">
+                        <div className="ap-modal-bc-icon"><Building2 size={16} /></div>
+                        <div>
+                          <div className="ap-modal-bc-label">Direction</div>
+                          <div className="ap-modal-bc-value">
+                            {viewAgent.direction?.nom_direction ?? '—'}
+                          </div>
+                          {viewAgent.direction?.sigle && (
+                            <div className="ap-modal-bc-sigle">[{viewAgent.direction.sigle}]</div>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight size={16} className="ap-modal-bc-sep" />
+                      <div className="ap-modal-bc-item ap-modal-bc-item--service">
+                        <div className="ap-modal-bc-icon"><Layers size={16} /></div>
+                        <div>
+                          <div className="ap-modal-bc-label">Service</div>
+                          <div className="ap-modal-bc-value">{viewAgent.service?.nom_service ?? '—'}</div>
+                        </div>
+                      </div>
+                      <ChevronRight size={16} className="ap-modal-bc-sep" />
+                      <div className="ap-modal-bc-item ap-modal-bc-item--division">
+                        <div className="ap-modal-bc-icon"><GitBranch size={16} /></div>
+                        <div>
+                          <div className="ap-modal-bc-label">Division</div>
+                          <div className="ap-modal-bc-value">{viewAgent.division?.Nom_division ?? '—'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── ONGLET ENFANTS ── */}
+              {activeTab === 'enfants' && (
+                <div className="ap-modal-sections">
+                  <div className="ap-modal-section">
+                    <p className="ap-modal-section-title"><Baby size={13} /> Enfants à charge</p>
+
+                    {loadingEnfants ? (
+                      <div className="ap-modal-loading">
+                        <span className="ap-spinner" /> Chargement des enfants...
+                      </div>
+                    ) : agentEnfants.length === 0 ? (
+                      <div className="ap-modal-empty">
+                        <Baby size={32} style={{ color: 'var(--instat-gray-300)', marginBottom: 8 }} />
+                        <p>Aucun enfant enregistré pour cet agent</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Compteurs */}
+                        <div className="ap-enfants-stats">
+                          <div className="ap-enfants-stat">
+                            <span className="ap-enfants-stat-num">{agentEnfants[0]?.Nb_enf ?? agentEnfants.length}</span>
+                            <span className="ap-enfants-stat-label">Total</span>
+                          </div>
+                          <div className="ap-enfants-stat ap-enfants-stat--inf">
+                            <span className="ap-enfants-stat-num">{agentEnfants[0]?.Nb_enf_inf_15ans ?? '—'}</span>
+                            <span className="ap-enfants-stat-label">{"< 15 ans"}</span>
+                          </div>
+                          <div className="ap-enfants-stat ap-enfants-stat--sup">
+                            <span className="ap-enfants-stat-num">{agentEnfants[0]?.Nb_enf_sup_15ans ?? '—'}</span>
+                            <span className="ap-enfants-stat-label">{"≥ 15 ans"}</span>
+                          </div>
+                        </div>
+
+                        {/* Liste des enfants */}
+                        <div className="ap-enfants-list">
+                          {agentEnfants.map((enfant: any, idx: number) => {
+                            const age = enfant.date_de_naissance
+                              ? new Date().getFullYear() - new Date(enfant.date_de_naissance).getFullYear()
+                              : null
+                            return (
+                              <div key={enfant.Id_enfant ?? idx} className="ap-enfant-card">
+                                <div className="ap-enfant-num">{idx + 1}</div>
+                                <div className="ap-enfant-info">
+                                  <div className="ap-enfant-date">
+                                    <Calendar size={11} />
+                                    {enfant.date_de_naissance
+                                      ? new Date(enfant.date_de_naissance).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+                                      : '—'}
+                                  </div>
+                                  {age !== null && (
+                                    <div className={`ap-enfant-age ${age < 15 ? 'ap-enfant-age--inf' : 'ap-enfant-age--sup'}`}>
+                                      {age} an{age > 1 ? 's' : ''}
+                                      {age < 15 ? ' · allocations' : ' · majeur'}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="ap-modal-footer-v2">
+              <button className="ap-btn-secondary" onClick={() => setViewAgent(null)}>Fermer</button>
+              <button className="ap-btn-primary" onClick={() => { setViewAgent(null); openEdit(viewAgent) }}>
                 <Pencil size={13} /> Modifier
               </button>
             </div>
@@ -382,7 +492,7 @@ export const AgentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Formulaire ajout/modification */}
+            {/* Formulaire */}
       {showForm && (
         <AgentForm
           agent={editAgent}

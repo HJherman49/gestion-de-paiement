@@ -12,7 +12,7 @@ class DirectionController extends Controller
 {
     public function index()
     {
-        $directions = Direction::with('services')->paginate(15);
+        $directions = Direction::with('services')->get();
         return DirectionResource::collection($directions);
     }
 

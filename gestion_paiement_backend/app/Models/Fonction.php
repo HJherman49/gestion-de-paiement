@@ -20,6 +20,10 @@ class Fonction extends Model
         'Id_direction', 
         'Id_agent',
     ];
+    protected $casts = [
+        'date_fonction' => 'date',
+        'date_affectation' => 'date',
+    ];
     public function agent()
     {
         return $this->belongsTo(Agent::class, 'Id_agent');

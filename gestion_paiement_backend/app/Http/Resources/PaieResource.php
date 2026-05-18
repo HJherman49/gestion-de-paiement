@@ -7,51 +7,57 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PaieResource extends JsonResource
 {
+
     public function toArray(Request $request): array
     {
-        $salaire_net = 
-            ($this->salaire_brut ?? 0) +
-            ($this->prime ?? 0) +
-            ($this->prime_speciale ?? 0) +
-            ($this->prime_fin_annee ?? 0) +
-            ($this->alloc ?? 0) +
-            ($this->logement ?? 0) +
-            ($this->rappel ?? 0) -
-            ($this->IGR ?? 0) -
-            ($this->PA ?? 0);
+        $salaire_net =
+            (float)($this->salaire_brut ?? 0) +
+            (float)($this->prime ?? 0) +
+            (float)($this->prime_speciale ?? 0) +
+            (float)($this->prime_fin_annee ?? 0) +
+            (float)($this->alloc ?? 0) +
+            (float)($this->logement ?? 0) +
+            (float)($this->rappel ?? 0) -
+            (float)($this->IGR ?? 0) -
+            (float)($this->PA ?? 0);
 
         return [
-            'Id_paie'           => $this->Id_paie,
-            'periode'           => $this->mois . '/' . $this->annee,
-            'mois'              => $this->mois,
-            'annee'             => $this->annee,
+            'Id_paie'        => $this->Id_paie,
+            'mois'           => $this->mois,
+            'annee'          => $this->annee,
+            'periode'        => $this->mois . '/' . $this->annee,
 
-            'salaire_brut'      => number_format($this->salaire_brut ?? 0, 2),
-            'primes_total'      => number_format(
-                ($this->prime ?? 0) + 
-                ($this->prime_speciale ?? 0) + 
-                ($this->prime_fin_annee ?? 0), 2
-            ),
-            'allocations'       => number_format(
-                ($this->alloc ?? 0) + ($this->logement ?? 0), 2
-            ),
-            'retenues'          => number_format(
-                ($this->IGR ?? 0) + ($this->PA ?? 0), 2
-            ),
-            'salaire_net'       => number_format($salaire_net, 2),
+            // ✅ (float) pour forcer number et non string
+            'salaire_brut'   => (float)($this->salaire_brut ?? 0),
+            'prime'          => (float)($this->prime ?? 0),
+            'prime_speciale' => (float)($this->prime_speciale ?? 0),
+            'prime_fin_annee'=> (float)($this->prime_fin_annee ?? 0),
+            'alloc'          => (float)($this->alloc ?? 0),
+            'logement'       => (float)($this->logement ?? 0),
+            'scola'          => (float)($this->scola ?? 0),
+            'remboursement'  => (float)($this->remboursement ?? 0),
+            'rappel'         => (float)($this->rappel ?? 0),
+            'Indice'         => (float)($this->Indice ?? 0),
+            'IGR'            => (float)($this->IGR ?? 0),
+            'PA'             => (float)($this->PA ?? 0),
 
-            'mode_paie'         => $this->mode_paie,
-            'date_effet'        => $this->date_effet?->format('Y-m-d'),
+            'salaire_net'    => (float)$salaire_net,
+            'chap'           => $this->chap,
+            'art'            => $this->art,
+            'mode_paie'      => $this->mode_paie,
+            'date_effet'     => $this->date_effet?->format('Y-m-d'),
+            'Id_agent'       => $this->Id_agent,
+            'Id_enfant'      => $this->Id_enfant,
 
-            // Relations
             'agent' => $this->whenLoaded('agent', fn() => [
-                'Id_agents'   => $this->agent->Id_agent,
-                'nom_complet' => $this->agent->nom . ' ' . $this->agent->prenoms,
+                'Id_agent'      => $this->agent->Id_agent,
+                'nom'           => $this->agent->nom,
+                'prenoms'       => $this->agent->prenoms,
                 'num_matricule' => $this->agent->num_matricule,
+                'civilite'      => $this->agent->civilite,
             ]),
 
-            'enfant' => $this->whenLoaded('enfant'),
-
+            'enfant'     => $this->whenLoaded('enfant'),
             'created_at' => $this->created_at?->format('Y-m-d H:i'),
         ];
     }

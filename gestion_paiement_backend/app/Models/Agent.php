@@ -3,10 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Agent extends Model
 {
+    use SoftDeletes;
+
     protected $primaryKey = 'Id_agent';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'num_matricule',
@@ -16,12 +21,15 @@ class Agent extends Model
         'N_CIN',
         'date_naissance',
         'sexe',
-        'date_entree_admin',
-        'date_delivrance_CI',
-        'lieu_delivrance_CI',
         'civilite',
         'tel',
-        'porte',
+        'mail',
+        'date_entree_admin',
+        'date_retraite',
+        'categ_retraite',
+        'date_delivrance_CI',
+        'lieu_delivrance_CI',
+        'N_Cnaps',
         'pp_gale',
         'Id_direction',
         'Id_service',
@@ -29,13 +37,37 @@ class Agent extends Model
         'Id_statut',
         'Id_contrat',
     ];
-    
+
     protected $casts = [
-        'date_de_naissance' => 'date',
-        'date_entree_admin' => 'date',
+        'date_naissance'     => 'date',
+        'date_entree_admin'  => 'date',
         'date_delivrance_CI' => 'date',
-        'sexe' => 'string',
+        'date_retraite'      => 'date',
+        'pp_gale'            => 'decimal:2',
+        'sexe'               => 'string',
     ];
+
+    // ------------------------------------------------
+    // MUTATORS — Convert empty strings to NULL
+    // ------------------------------------------------
+    public function setDateRetraiteAttribute(string $value)
+    {
+        $this->attributes['date_retraite'] = empty($value) ? null : $value;
+    }
+
+    public function setCategRetraiteAttribute(string $value)
+    {
+        $this->attributes['categ_retraite'] = empty($value) ? null : $value;
+    }
+
+    public function setNCnapsAttribute(string $value)
+    {
+        $this->attributes['N_Cnaps'] = empty($value) ? null : $value;
+    }
+
+    // ------------------------------------------------
+    // RELATIONS belongsTo
+    // ------------------------------------------------
     public function direction()
     {
         return $this->belongsTo(Direction::class, 'Id_direction', 'Id_direction');
@@ -60,54 +92,85 @@ class Agent extends Model
     {
         return $this->belongsTo(Contrat::class, 'Id_contrat', 'Id_contrat');
     }
-    
+
+    // ------------------------------------------------
+    // RELATIONS hasMany — FK = Id_agent
+    // ------------------------------------------------
     public function enfants()
     {
-        return $this->hasMany(Enfant::class, 'Id_agent');
+        return $this->hasMany(Enfant::class, 'Id_agent', 'Id_agent');
     }
 
     public function comptesBancaires()
     {
-        return $this->hasMany(CompteBancaire::class, 'Id_agent');
+        return $this->hasMany(CompteBancaire::class, 'Id_agent', 'Id_agent');
     }
 
     public function carrieres()
     {
-        return $this->hasMany(Carriere::class, 'Id_agent');
-    }
-
-    public function reclassements()
-    {
-        return $this->hasManyThrough(Reclassement::class, Carriere::class, 'Id_agent', 'Id_carriere');
-    }
-
-    public function fonctions()
-    {
-        return $this->hasMany(Fonction::class, 'Id_agent');
+        return $this->hasMany(Carriere::class, 'Id_agent', 'Id_agent');
     }
 
     public function preembauches()
     {
-        return $this->hasMany(Preembauche::class, 'Id_agent');
+        return $this->hasMany(Preembauche::class, 'Id_agent', 'Id_agent');
     }
 
     public function paies()
     {
-        return $this->hasMany(Paie::class, 'Id_agent');
+        return $this->hasMany(Paie::class, 'Id_agent', 'Id_agent');
     }
 
+    public function historiques()
+    {
+        return $this->hasMany(Historique::class, 'Id_agent', 'Id_agent');
+    }
+
+    // ------------------------------------------------
+    // RELATION hasManyThrough
+    // ------------------------------------------------
+    public function reclassements()
+    {
+        return $this->hasManyThrough(
+            Reclassement::class,
+            Carriere::class,
+            'Id_agent',     // FK dans Carriere → Agent
+            'Id_carriere',  // FK dans Reclassement → Carriere
+            'Id_agent',     // PK locale dans Agent
+            'Id_carriere'   // PK dans Carriere
+        );
+    }
+
+    // ------------------------------------------------
+    // RELATIONS belongsToMany (pivot)
+    // ------------------------------------------------
     public function diplomes()
     {
-        return $this->belongsToMany(Diplome::class, 'agent_diplome', 'Id_agent', 'Id_diplome');
+        return $this->belongsToMany(
+            Diplome::class,
+            'agent_diplomes',
+            'Id_agent',
+            'Id_diplome'
+        );
     }
 
     public function concours()
     {
-        return $this->belongsToMany(Concours::class, 'agent_concours', 'Id_agent', 'Id_concours');
+        return $this->belongsToMany(
+            Concours::class,
+            'agent_concours',
+            'Id_agent',
+            'Id_concours'
+        );
     }
 
-    public function historique()
+    // ------------------------------------------------
+    // CARRIERE ACTUELLE (helper)
+    // ------------------------------------------------
+    public function carriereActuelle()
     {
-        return $this->hasMany(Historique::class, 'Id_agent');
+        return $this->hasOne(Carriere::class, 'Id_agent', 'Id_agent')
+                     ->whereNull('date_fin')
+                     ->latest('date_debut');
     }
 }

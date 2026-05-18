@@ -29,6 +29,12 @@ return new class extends Migration
                 ->restrictOnDelete();
 
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['table_concernee', 'id_enregistrement']);
+            $table->index('type_action');
+            $table->index('date_action');
+            $table->index('utilisateur');
         });
     }
 

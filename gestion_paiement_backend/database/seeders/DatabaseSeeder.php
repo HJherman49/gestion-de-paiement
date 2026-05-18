@@ -2,32 +2,26 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
+use Illuminate\Support\Facades\Schema;
+use Database\Seeders\UserSeeder;
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // ✅ Désactiver les FK pour tous les seeders
+        Schema::disableForeignKeyConstraints();
 
         $this->call([
-           /* DirectionSeeder::class,
+            UserSeeder::class,
+            DirectionSeeder::class,
             ServiceSeeder::class,
             DivisionSeeder::class,
             StatutSeeder::class,
-            ContratSeeder::class,*/
+            ContratSeeder::class,
         ]);
+
+        // ✅ Réactiver après
+        Schema::enableForeignKeyConstraints();
     }
 }

@@ -12,6 +12,7 @@ class DivisionResource extends JsonResource
         return [
             'Id_division'   => $this->Id_division,
             'Nom_division'  => $this->Nom_division,
+            'Id_service'    => $this->Id_service,
             'section'       => $this->section,
             'service'       => $this->whenLoaded('service', fn() => $this->service->nom_service),
         ];

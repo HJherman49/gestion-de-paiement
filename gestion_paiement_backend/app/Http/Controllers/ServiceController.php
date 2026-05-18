@@ -11,7 +11,7 @@ class ServiceController extends Controller
 {
     public function index()
     {
-        $services = Service::with('direction')->paginate(20);
+        $services = Service::with('direction')->get();
         return ServiceResource::collection($services);
     }
 

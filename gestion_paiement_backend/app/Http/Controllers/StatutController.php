@@ -11,7 +11,7 @@ class StatutController extends Controller
 {
     public function index()
     {
-        $statuts = Statut::paginate(15);
+        $statuts = Statut::get();
         return StatutResource::collection($statuts);
     }
 

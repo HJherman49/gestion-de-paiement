@@ -1,0 +1,117 @@
+/* Stat Card */
+.stat-card {
+  background: #fff;
+  border: 1px solid var(--instat-gray-200);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+
+/* Card Header */
+.stat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.stat-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--instat-gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stat-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(26, 31, 60, 0.05);
+}
+
+/* Card Value */
+.stat-card-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stat-card-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--instat-dark);
+}
+
+.stat-card-unit {
+  font-size: 12px;
+  color: var(--instat-gray-400);
+  font-weight: 500;
+}
+
+/* Card Delta */
+.stat-card-delta {
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-card-delta.up {
+  color: var(--green);
+}
+
+.stat-card-delta.down {
+  color: var(--instat-red);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-card-number {
+    font-size: 24px;
+  }
+
+  .stat-card-label {
+    font-size: 11px;
+  }
+
+  .stat-card-delta {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stat-card-number {
+    font-size: 20px;
+  }
+
+  .stat-card-header {
+    margin-bottom: 12px;
+  }
+
+  .stat-card-icon {
+    width: 32px;
+    height: 32px;
+  }
+}

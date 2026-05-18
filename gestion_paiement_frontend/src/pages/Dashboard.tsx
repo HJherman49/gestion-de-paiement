@@ -6,6 +6,7 @@ import {
 import { Users, UserPlus, TrendingUp, Wallet, Clock } from 'lucide-react'
 import { StatCard } from '../components/StatCard'
 import { evolutionData, repartitionStatut, recrutements } from '../data/mockData'
+import '../styles/pages/Dashboard.css'
 
 type ChartView = 'effectifs' | 'recrutements' | 'masse'
 
@@ -33,24 +34,15 @@ export const Dashboard: React.FC = () => {
   const cfg = chartConfig[chartView]
 
   return (
-    <div style={{ padding: '28px 32px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="dashboard-container">
       {/* Header */}
-      <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--instat-dark)', marginBottom: '4px' }}>
-          Tableau de bord
-        </h1>
-        <p style={{ fontSize: '14px', color: 'var(--instat-gray-400)' }}>
-          Vue d'ensemble des effectifs, recrutements et masse salariale
-        </p>
+      <div className="dashboard-header">
+        <h1>Tableau de bord</h1>
+        <p>Vue d'ensemble des effectifs, recrutements et masse salariale</p>
       </div>
 
       {/* Stat Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '16px',
-        marginBottom: '24px',
-      }}>
+      <div className="stat-cards-grid">
         <StatCard
           label="Agents actifs"
           value={172}
@@ -87,36 +79,17 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '16px', marginBottom: '16px' }}>
+      <div className="charts-row">
         {/* Evolution chart */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid var(--instat-gray-200)',
-          borderRadius: '12px',
-          padding: '20px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--instat-dark)' }}>
-              Évolution des données (12 mois)
-            </h2>
-            <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="chart-card">
+          <div className="chart-header">
+            <h2>Évolution des données (12 mois)</h2>
+            <div className="chart-options">
               {CHART_OPTIONS.map(opt => (
                 <button
                   key={opt.key}
                   onClick={() => setChartView(opt.key)}
-                  style={{
-                    padding: '5px 14px',
-                    borderRadius: '20px',
-                    border: '1px solid',
-                    borderColor: chartView === opt.key ? 'var(--instat-dark)' : 'var(--instat-gray-200)',
-                    background: chartView === opt.key ? 'var(--instat-dark)' : 'transparent',
-                    color: chartView === opt.key ? '#fff' : 'var(--instat-gray-600)',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif',
-                    transition: 'all 0.15s',
-                  }}
+                  className={`chart-btn ${chartView === opt.key ? 'active' : ''}`}
                 >
                   {opt.label}
                 </button>
@@ -160,15 +133,8 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Répartition par statut */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid var(--instat-gray-200)',
-          borderRadius: '12px',
-          padding: '20px',
-        }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--instat-dark)', marginBottom: '16px' }}>
-            Répartition par statut
-          </h2>
+        <div className="chart-card">
+          <h2>Répartition par statut</h2>
           <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie
@@ -186,7 +152,13 @@ export const Dashboard: React.FC = () => {
               </Pie>
               <Tooltip
                 contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e6ef' }}
-                formatter={(value: number, name: string) => [`${value} agents`, name]}
+                formatter={(
+                  value: number | string | ReadonlyArray<number | string> | undefined,
+                  name: number | string | undefined,
+                ) => {
+                  const numericValue = typeof value === 'number' ? value : Number(value ?? 0)
+                  return [`${numericValue} agents`, name ?? '']
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -204,43 +176,22 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Bottom row: Recrutements + Bar chart masse */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div className="dashboard-bottom-row">
         {/* Recrutements en cours */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid var(--instat-gray-200)',
-          borderRadius: '12px',
-          padding: '20px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--instat-dark)' }}>
-              Recrutements en cours
-            </h2>
-            <span style={{
-              background: '#27ae6015', color: 'var(--green)',
-              padding: '3px 10px', borderRadius: '20px',
-              fontSize: '12px', fontWeight: 600,
-            }}>14 postes</span>
+        <div className="recrutements-section">
+          <div className="recrutements-header">
+            <h2>Recrutements en cours</h2>
+            <span className="recrutements-badge">14 postes</span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className="recrutements-list">
             {recrutements.map((r, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px',
-                background: 'var(--instat-gray-50)',
-                borderRadius: '8px',
-                border: '1px solid var(--instat-gray-100)',
-              }}>
+              <div key={i} className="recrutement-item">
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--instat-dark)', marginBottom: '2px' }}>{r.poste}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--instat-gray-400)' }}>{r.service} · {r.candidats} candidats</div>
+                  <div className="recrutement-poste">{r.poste}</div>
+                  <div className="recrutement-details">{r.service} · {r.candidats} candidats</div>
                 </div>
-                <span style={{
-                  padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                  background: `${statusColor[r.statut]}18`,
-                  color: statusColor[r.statut],
-                }}>
+                <span className={`recrutement-status ${r.statut.toLowerCase().replace(' ', '-')}`}>
                   {r.statut}
                 </span>
               </div>
@@ -249,15 +200,8 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Masse salariale bar chart */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid var(--instat-gray-200)',
-          borderRadius: '12px',
-          padding: '20px',
-        }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--instat-dark)', marginBottom: '20px' }}>
-            Masse salariale (M Ar)
-          </h2>
+        <div className="chart-card">
+          <h2 style={{ marginBottom: '20px' }}>Masse salariale (M Ar)</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={evolutionData.slice(-6)} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f7" />
@@ -265,7 +209,13 @@ export const Dashboard: React.FC = () => {
               <YAxis tick={{ fontSize: 11, fill: '#9aa3b5' }} axisLine={false} tickLine={false} domain={[280, 320]} />
               <Tooltip
                 contentStyle={{ background: '#fff', border: '1px solid #e2e6ef', borderRadius: '8px', fontSize: '12px' }}
-                formatter={(v: number) => [`${v} M Ar`, 'Masse salariale']}
+                formatter={(
+                  v: number | string | ReadonlyArray<number | string> | undefined,
+                  name: number | string | undefined,
+                ) => {
+                  const numericValue = typeof v === 'number' ? v : Number(v ?? 0)
+                  return [`${numericValue} M Ar`, name ?? 'Masse salariale']
+                }}
               />
               <Bar dataKey="masseAriary" fill="var(--instat-dark)" radius={[4, 4, 0, 0]} />
             </BarChart>

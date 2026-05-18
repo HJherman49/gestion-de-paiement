@@ -12,6 +12,7 @@ class ServiceResource extends JsonResource
         return [
             'Id_service'    => $this->Id_service,
             'nom_service'   => $this->nom_service,
+            'Id_direction'  => $this->Id_direction,
             'direction'     => $this->whenLoaded('direction', fn() => $this->direction->nom_Direction),
         ];
     }

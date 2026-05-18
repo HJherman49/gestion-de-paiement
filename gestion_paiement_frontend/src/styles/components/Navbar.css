@@ -1,0 +1,249 @@
+/* Navbar Header */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Top Bar */
+.navbar-top-bar {
+  background: var(--instat-dark);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 24px;
+  gap: 0;
+}
+
+/* Quick Links */
+.quick-link {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  padding: 0 14px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.quick-link:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.quick-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Admin Button */
+.admin-btn {
+  height: 36px;
+  padding: 0 14px;
+  background: var(--instat-red);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.3px;
+  transition: background 0.15s;
+}
+
+.admin-btn:hover {
+  background: #a93226;
+}
+
+/* Main Navigation */
+nav {
+  background: #fff;
+  border-bottom: 3px solid var(--instat-red);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 60px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Logo */
+.navbar-logo {
+  display: flex;
+  flex-direction: column;
+  margin-right: 32px;
+  flex-shrink: 0;
+}
+
+.navbar-logo-content {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.navbar-logo-main {
+  font-size: 22px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--instat-dark);
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.navbar-logo-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--instat-red);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding-bottom: 2px;
+}
+
+.navbar-logo-subtitle {
+  font-size: 9px;
+  color: var(--instat-gray-400);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* Navigation Items */
+.navbar-items {
+  display: flex;
+  align-items: stretch;
+  height: 60px;
+  flex: 1;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-item-btn {
+  height: 60px;
+  padding: 0 14px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--instat-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: color 0.15s;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.nav-item-btn:hover {
+  color: var(--instat-dark);
+}
+
+.nav-item-btn.active {
+  border-bottom-color: var(--instat-red);
+  color: var(--instat-dark);
+  font-weight: 600;
+}
+
+.nav-item-btn.active:hover {
+  color: var(--instat-dark);
+}
+
+/* Dropdown */
+.nav-dropdown {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--instat-gray-200);
+  border-top: 3px solid var(--instat-red);
+  border-radius: 0 0 8px 8px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+}
+
+.nav-dropdown-item {
+  padding: 10px 18px;
+  font-size: 13px;
+  color: var(--instat-gray-600);
+  cursor: pointer;
+  border-bottom: 1px solid var(--instat-gray-100);
+  transition: background 0.1s, color 0.1s;
+}
+
+.nav-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.nav-dropdown-item:hover {
+  background: var(--instat-gray-50);
+  color: var(--instat-dark);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  nav {
+    padding: 0 16px;
+  }
+
+  .navbar-items {
+    flex-wrap: wrap;
+  }
+
+  .nav-item-btn {
+    font-size: 11.5px;
+    padding: 0 10px;
+  }
+
+  .navbar-logo {
+    margin-right: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-top-bar {
+    display: none;
+  }
+
+  nav {
+    flex-direction: column;
+    height: auto;
+    padding: 8px 16px;
+  }
+
+  .navbar-logo {
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+
+  .navbar-items {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .nav-item-btn {
+    flex: 1 1 auto;
+    height: auto;
+    padding: 8px 10px;
+    font-size: 11px;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    margin: 0;
+  }
+
+  .nav-item-btn.active {
+    border-left-color: var(--instat-red);
+    border-bottom: none;
+  }
+}

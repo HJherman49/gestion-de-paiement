@@ -15,7 +15,7 @@ class ContratController extends Controller
      */
     public function index()
     {
-        $contrats = Contrat::paginate(15);
+        $contrats = Contrat::get();
         return ContratResource::collection($contrats);
     }
 

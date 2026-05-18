@@ -1,27 +1,27 @@
 import type { Agent, Direction, Service, Division, Statut, Contrat } from '../types/agent'
 
 export const directions: Direction[] = [
-  { Id_Direction: 1, Nom_Direction: 'Direction Générale', Sigle: 'DG', Siege: 'Antananarivo', Faritany: 'Analamanga' },
-  { Id_Direction: 2, Nom_Direction: 'Direction des Systèmes d\'Information', Sigle: 'DSI', Siege: 'Antananarivo', Faritany: 'Analamanga' },
-  { Id_Direction: 3, Nom_Direction: 'Direction des Ressources Humaines', Sigle: 'DRH', Siege: 'Antananarivo', Faritany: 'Analamanga' },
-  { Id_Direction: 4, Nom_Direction: 'Direction des Statistiques Économiques', Sigle: 'DISE', Siege: 'Antananarivo', Faritany: 'Analamanga' },
-  { Id_Direction: 5, Nom_Direction: 'Direction Financière', Sigle: 'DF', Siege: 'Antananarivo', Faritany: 'Analamanga' },
+  { Id_direction: 1, nom_direction: 'Direction Générale', sigle: 'DG', siege: 'Antananarivo', faritany: 'Analamanga' },
+  { Id_direction: 2, nom_direction: 'Direction des Systèmes d\'Information', sigle: 'DSI', siege: 'Antananarivo', faritany: 'Analamanga' },
+  { Id_direction: 3, nom_direction: 'Direction des Ressources Humaines', sigle: 'DRH', siege: 'Antananarivo', faritany: 'Analamanga' },
+  { Id_direction: 4, nom_direction: 'Direction des Statistiques Économiques', sigle: 'DISE', siege: 'Antananarivo', faritany: 'Analamanga' },
+  { Id_direction: 5, nom_direction: 'Direction Financière', sigle: 'DF', siege: 'Antananarivo', faritany: 'Analamanga' },
 ]
 
 export const services: Service[] = [
-  { Id_service: 1, Nom_service: 'Service Informatique', Id_direction: 2 },
-  { Id_service: 2, Nom_service: 'Service Réseau', Id_direction: 2 },
-  { Id_service: 3, Nom_service: 'Service Recrutement', Id_direction: 3 },
-  { Id_service: 4, Nom_service: 'Service Paie', Id_direction: 3 },
-  { Id_service: 5, Nom_service: 'Service Comptabilité', Id_direction: 5 },
-  { Id_service: 6, Nom_service: 'Service Statistiques', Id_direction: 4 },
+  { Id_service: 1, nom_service: 'Service Informatique', Id_direction: 2 },
+  { Id_service: 2, nom_service: 'Service Réseau', Id_direction: 2 },
+  { Id_service: 3, nom_service: 'Service Recrutement', Id_direction: 3 },
+  { Id_service: 4, nom_service: 'Service Paie', Id_direction: 3 },
+  { Id_service: 5, nom_service: 'Service Comptabilité', Id_direction: 5 },
+  { Id_service: 6, nom_service: 'Service Statistiques', Id_direction: 4 },
 ]
 
 export const divisions: Division[] = [
-  { Id_division: 1, nom_division: 'Division Développement', section: 'Web', Id_service: 1 },
-  { Id_division: 2, nom_division: 'Division Infrastructure', section: 'Serveurs', Id_service: 2 },
-  { Id_division: 3, nom_division: 'Division Administration RH', section: 'Gestion', Id_service: 3 },
-  { Id_division: 4, nom_division: 'Division Traitement Paie', section: 'Calcul', Id_service: 4 },
+  { Id_division: 1, Nom_division: 'Division Développement', section: 'Web', Id_service: 1 },
+  { Id_division: 2, Nom_division: 'Division Infrastructure', section: 'Serveurs', Id_service: 2 },
+  { Id_division: 3, Nom_division: 'Division Administration RH', section: 'Gestion', Id_service: 3 },
+  { Id_division: 4, Nom_division: 'Division Traitement Paie', section: 'Calcul', Id_service: 4 },
 ]
 
 export const statuts: Statut[] = [
@@ -38,7 +38,7 @@ export const contrats: Contrat[] = [
   { Id_contrat: 4, type_contrat: 'Vacation', duree: '3 mois' },
 ]
 
-export const agents: Agent[] = [
+/*export const agents: Agent[] = [
   {
     id_agents: 1,
     num_matricule: 'MAT-001',
@@ -57,7 +57,7 @@ export const agents: Agent[] = [
     direction: directions[1], service: services[0], division: divisions[0], statut: statuts[0], contrat: contrats[0],
   },
   {
-    id_agents: 2,
+    id_agent: 2,
     num_matricule: 'MAT-002',
     nom: 'RABE',
     prenoms: 'Marie Hélène',
@@ -91,7 +91,7 @@ export const agents: Agent[] = [
     direction: directions[4], service: services[4], division: divisions[3], statut: statuts[2], contrat: contrats[2],
   },
   {
-    id_agents: 4,
+    id_agent: 4,
     num_matricule: 'MAT-004',
     nom: 'RASOA',
     prenoms: 'Hanta Volatiana',
@@ -124,4 +124,4 @@ export const agents: Agent[] = [
     Id_direction: 4, Id_service: 6, Id_division: 1, Id_statut: 4, Id_contrat: 4,
     direction: directions[3], service: services[5], division: divisions[0], statut: statuts[3], contrat: contrats[3],
   },
-]
+]*/
