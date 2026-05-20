@@ -199,7 +199,7 @@ export const BanquePage: React.FC = () => {
                 ) : filteredBanques.length === 0 ? (
                   <tr><td colSpan={6} className="bp-empty">Aucune banque trouvée</td></tr>
                 ) : filteredBanques.map((b, i) => (
-                  <tr key={b.Id_banque} className={`bp-row ${i % 2 === 0 ? 'bp-row-even' : 'bp-row-odd'}`}>
+                  <tr key={`banque-${b.Id_banque ?? i}`} className={`bp-row ${i % 2 === 0 ? 'bp-row-even' : 'bp-row-odd'}`}>
                     <td>
                       <div className="bp-banque-name">{b.Nom_banque}</div>
                     </td>
@@ -249,12 +249,18 @@ export const BanquePage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {loadingC ? (
-                  <tr><td colSpan={7} className="bp-empty"><span className="bp-spinner" /> Chargement...</td></tr>
-                ) : filteredComptes.length === 0 ? (
-                  <tr><td colSpan={7} className="bp-empty">Aucun compte trouvé</td></tr>
-                ) : filteredComptes.map((c, i) => (
-                  <tr key={c.Id_compte_bancaire} className={`bp-row ${i % 2 === 0 ? 'bp-row-even' : 'bp-row-odd'}`}>
+                {loadingC && (
+                  <tr key="loading">
+                    <td colSpan={7} className="bp-empty"><span className="bp-spinner" /> Chargement...</td>
+                  </tr>
+                )}
+                {!loadingC && filteredComptes.length === 0 && (
+                  <tr key="empty">
+                    <td colSpan={7} className="bp-empty">Aucun compte trouvé</td>
+                  </tr>
+                )}
+                {!loadingC && filteredComptes.map((c, i) => (
+                  <tr key={`compte-${c.Id_compte_bancaire ?? i}`} className={`bp-row ${i % 2 === 0 ? 'bp-row-even' : 'bp-row-odd'}`}>
                     <td>
                       {c.agent ? (
                         <>
@@ -381,7 +387,7 @@ export const BanquePage: React.FC = () => {
                 {[
                   { label: 'Banque',          value: viewCompte.banque?.Nom_banque },
                   { label: 'Agence',          value: viewCompte.banque?.agence },
-                  { label: 'Adresse banque',  value: viewCompte.adresse_banque },
+                  { label: 'Adresse banque',  value: viewCompte.adresse_bnq },
                   { label: 'Code localité',   value: viewCompte.code_localite },
                   { label: 'CODQEB',          value: viewCompte.CODQEB },
                   { label: 'Matricule agent', value: viewCompte.agent?.num_matricule },

@@ -39,7 +39,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
 
-        // ---- Référentiels ----
+        
         Route::apiResource('directions',  DirectionController::class);
         Route::apiResource('services',    ServiceController::class);
         Route::apiResource('divisions',   DivisionController::class);
@@ -49,11 +49,21 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('banques',     BanqueController::class);
         Route::apiResource('regions',     RegionController::class);
         Route::apiResource('diplomes',    DiplomeController::class);
+        Route::apiResource('carrieres',       CarriereController::class);
+        Route::apiResource('fonctions',       FonctionController::class);
+        Route::apiResource('preembauches',    PreembaucheController::class);
+        Route::apiResource('enfants',         EnfantController::class);
+        Route::apiResource('reclassements',   ReclassementController::class);
+        Route::apiResource('compte-bancaires',CompteBancaireController::class);
+        Route::apiResource('paies',           PaieController::class);
+               // Route::apiResource('historiques',      HistoriqueController::class);
+        //Route::apiResource('concours',        ConcoursController::class);
 
-        // ---- Agent (table centrale) ----
+
+        
         Route::apiResource('agents', AgentController::class);
 
-        // Routes imbriquées de l'agent
+        // Routes imbriquées pour les relations d'un agent
         Route::prefix('agents/{agent}')->group(function () {
             Route::get('carrieres',        [CarriereController::class,      'parAgent']);
             Route::get('carrieres/actuelle',[CarriereController::class,     'actuelle']);
@@ -68,16 +78,7 @@ Route::prefix('v1')->group(function () {
             
         });
 
-        // ---- Autres ressources ----
-        Route::apiResource('carrieres',       CarriereController::class);
-        Route::apiResource('fonctions',       FonctionController::class);
-        Route::apiResource('preembauches',    PreembaucheController::class);
-        Route::apiResource('enfants',         EnfantController::class);
-        Route::apiResource('reclassements',   ReclassementController::class);
-        Route::apiResource('compte-bancaires',CompteBancaireController::class);
-        Route::apiResource('paies',           PaieController::class);
-       // Route::apiResource('historiques',      HistoriqueController::class);
-        //Route::apiResource('concours',        ConcoursController::class);
+    
 
         // ---- Actions spéciales ----
         Route::post('paies/{paie}/valider',   [PaieController::class,      'valider']);

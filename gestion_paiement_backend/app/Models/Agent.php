@@ -52,17 +52,18 @@ class Agent extends Model
     // ------------------------------------------------
     public function setDateRetraiteAttribute(string $value)
     {
-        $this->attributes['date_retraite'] = empty($value) ? null : $value;
+        // Accept null or empty string from requests and store as NULL in DB
+        $this->attributes['date_retraite'] = ($value === null || $value === '') ? null : $value;
     }
 
     public function setCategRetraiteAttribute(string $value)
     {
-        $this->attributes['categ_retraite'] = empty($value) ? null : $value;
+        $this->attributes['categ_retraite'] = ($value === null || $value === '') ? null : $value;
     }
 
     public function setNCnapsAttribute(string $value)
     {
-        $this->attributes['N_Cnaps'] = empty($value) ? null : $value;
+        $this->attributes['N_Cnaps'] = ($value === null || $value === '') ? null : $value;
     }
 
     // ------------------------------------------------

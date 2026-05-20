@@ -22,6 +22,8 @@ class AgentResource extends JsonResource
             'civilite'           => $this->civilite,
             'tel'                => $this->tel,
             'date_entree_admin'  => $this->date_entree_admin?->format('Y-m-d'),
+            'date_delivrance_CI' => $this->date_delivrance_CI?->format('Y-m-d'),
+            'lieu_delivrance_CI' => $this->lieu_delivrance_CI,
 
             // Relations simples
             'direction' => $this->whenLoaded('direction', fn() => [

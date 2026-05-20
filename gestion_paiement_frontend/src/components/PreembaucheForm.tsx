@@ -27,7 +27,7 @@ const EMPTY: PreembauchePayload = {
   Deb_stage_PreEmb: '', Deb_stage_PreEmb_txt: '',
   Fin_stage_PreEmb: '', Fin_stage_PreEmb_txt: '',
   Montant_PreEmb: 0, Montant_PreEmb_Contrat: 0,
-  id_agent: 0, Id_contrat: 0,
+  Id_agent: 0, Id_contrat: 0,
 }
 
 const ar = (val: any) => val && Number(val) > 0
@@ -37,7 +37,7 @@ export const PreembaucheForm: React.FC<PreembaucheFormProps> = ({
   preembauche, defaultAgentId, onSave, onClose,
 }) => {
   const [step, setStep]         = useState<Step>('recrutement')
-  const [form, setForm]         = useState<PreembauchePayload>({ ...EMPTY, id_agent: defaultAgentId ?? 0 })
+  const [form, setForm]         = useState<PreembauchePayload>({ ...EMPTY, Id_agent: defaultAgentId ?? 0 })
   const [agents, setAgents]     = useState<Agent[]>([])
   const [contrats, setContrats] = useState<Contrat[]>([])
   const [saving, setSaving]     = useState(false)
@@ -66,7 +66,7 @@ export const PreembaucheForm: React.FC<PreembaucheFormProps> = ({
         Fin_stage_PreEmb_txt:   preembauche.Fin_stage_PreEmb_txt,
         Montant_PreEmb:         Number(preembauche.Montant_PreEmb),
         Montant_PreEmb_Contrat: Number(preembauche.Montant_PreEmb_Contrat),
-        id_agent:               preembauche.Id_agent,
+        Id_agent:               preembauche.Id_agent,
         Id_contrat:             preembauche.Id_contrat,
       })
     }
@@ -79,8 +79,13 @@ export const PreembaucheForm: React.FC<PreembaucheFormProps> = ({
     set(key, val === '' ? 0 : parseFloat(val) || 0)
 
   const handleSubmit = async () => {
-    if (!form.id_agent)          { setError('Veuillez sélectionner un agent'); setStep('recrutement'); return }
+    if (!form.Id_agent)          { setError('Veuillez sélectionner un agent'); setStep('recrutement'); return }
     if (!form.Date_recrutement)  { setError('La date de recrutement est obligatoire'); setStep('recrutement'); return }
+    if (form.Date_recrutement1 && form.Date_recrutement1 < form.Date_recrutement) {
+      setError('La deuxième date de recrutement doit être égale ou postérieure à la première');
+      setStep('recrutement');
+      return
+    }
     if (!form.Id_contrat)        { setError('Veuillez sélectionner un type de contrat'); setStep('contrat'); return }
 
     setSaving(true); setError(null)
@@ -94,7 +99,7 @@ export const PreembaucheForm: React.FC<PreembaucheFormProps> = ({
     }
   }
 
-  const selectedAgent   = agents.find(a => a.Id_agent === form.id_agent)
+  const selectedAgent   = agents.find(a => a.Id_agent === form.Id_agent)
   const selectedContrat = contrats.find(c => c.Id_contrat === form.Id_contrat)
 
   // Durée du stage en jours
@@ -153,8 +158,8 @@ export const PreembaucheForm: React.FC<PreembaucheFormProps> = ({
               {/* Agent */}
               <div className="pef-field">
                 <label className="pef-label">Agent <span className="pef-required">*</span></label>
-                <select className="pef-input" value={form.id_agent || ''}
-                  onChange={e => set('id_agent', Number(e.target.value))}
+                <select className="pef-input" value={form.Id_agent || ''}
+                  onChange={e => set('Id_agent', Number(e.target.value))}
                   disabled={!!defaultAgentId} title="Agent">
                   <option value="">-- Sélectionner un agent --</option>
                   {agents.map(a => (

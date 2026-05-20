@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEnfantRequest;
 use App\Http\Resources\EnfantResource;
+use App\Models\Agent;
 use App\Models\Enfant;
 
 class EnfantController extends Controller
@@ -15,9 +16,20 @@ class EnfantController extends Controller
         return EnfantResource::collection($enfants);
     }
 
+    public function parAgent(Agent $agent)
+    {
+        return EnfantResource::collection($agent->enfants()->with('agent')->get());
+    }
+
     public function store(StoreEnfantRequest $request)
     {
-        $enfant = Enfant::create($request->validated());
+        $data = $request->validated();
+        if (isset($data['date_de_naissance'])) {
+            $data['date_naissance'] = $data['date_de_naissance'];
+            unset($data['date_de_naissance']);
+        }
+
+        $enfant = Enfant::create($data);
         return new EnfantResource($enfant);
     }
 
@@ -29,7 +41,13 @@ class EnfantController extends Controller
 
     public function update(StoreEnfantRequest $request, Enfant $enfant)
     {
-        $enfant->update($request->validated());
+        $data = $request->validated();
+        if (isset($data['date_de_naissance'])) {
+            $data['date_naissance'] = $data['date_de_naissance'];
+            unset($data['date_de_naissance']);
+        }
+
+        $enfant->update($data);
         return new EnfantResource($enfant);
     }
 

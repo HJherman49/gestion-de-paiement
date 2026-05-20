@@ -22,7 +22,7 @@ export interface BanquePayload {
 export interface CompteBancaireFromAPI {
   Id_compte_bancaire: number
   num_compte:         string
-  adresse_banque:     string
+  adresse_bnq:     string
   code_localite:      string
   CODQEB:             string
   GUICHB:             string
@@ -48,7 +48,7 @@ export interface CompteBancaireFromAPI {
 
 export interface CompteBancairePayload {
   num_compte:     string
-  adresse_banque: string
+  adresse_bnq: string
   code_localite:  string
   CODQEB:         string
   GUICHB:         string

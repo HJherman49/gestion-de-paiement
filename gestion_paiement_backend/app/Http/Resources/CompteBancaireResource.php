@@ -12,9 +12,23 @@ class CompteBancaireResource extends JsonResource
         return [
             'Id_compte'     => $this->Id_compte,
             'num_compte'    => $this->num_compte,
-            'banque'        => $this->whenLoaded('banque', fn() => $this->banque->nom_banque),
-            'agence'        => $this->whenLoaded('banque', fn() => $this->banque->agence),
+            'adresse_bnq'   => $this->adresse_bnq,
+            'code_localite' => $this->code_localite,
+            'CODQEB'        => $this->CODQEB,
+            'GUICHB'        => $this->GUICHB,
             'RIB'           => $this->RIB,
+            'agent'            => $this->whenLoaded('agent', fn() => [
+                'Id_agent'     => $this->agent->Id_agent,
+                'nom'          => $this->agent->nom,
+                'prenoms'      => $this->agent->prenoms,
+                'num_matricule'=> $this->agent->num_matricule,
+            ]),
+            'banque'        => $this->whenLoaded('banque', fn() => [
+                'Nom_banque' => $this->banque->Nom_banque,
+                'agence'     => $this->banque->agence
+            ]),
+            //'agence'        => $this->whenLoaded('banque', fn() => $this->banque->agence),
+            
         ];
     }
 }

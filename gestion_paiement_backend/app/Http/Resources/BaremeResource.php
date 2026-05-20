@@ -12,11 +12,12 @@ class BaremeResource extends JsonResource
         return [
             'Id_bareme'       => $this->Id_bareme,
             'Indice'          => $this->Indice,
-            'salaire_base'    => number_format($this->salaire_base, 2),
-            'salaire_mensuel' => number_format($this->salaire_mensuel, 2),
-            'anciennete'      => $this->anciennete,
-            'DIF'             => number_format($this->DIF ?? 0, 2),
-            'rappell'         => number_format($this->rappell ?? 0, 2),
+            // Return raw numeric values so frontend can parse them reliably
+            'salaire_base'    => $this->salaire_base !== null ? (float) $this->salaire_base : 0.0,
+            'salaire_mensuel' => $this->salaire_mensuel !== null ? (float) $this->salaire_mensuel : 0.0,
+            'anciennete'      => $this->anciennete !== null ? (float) $this->anciennete : 0.0,
+            'DIF'             => $this->DIF !== null ? (float) $this->DIF : 0.0,
+            'rappell'         => $this->rappell !== null ? (float) $this->rappell : 0.0,
         ];
     }
 }

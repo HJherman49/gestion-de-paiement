@@ -10,10 +10,11 @@ class CompteBancaire extends Model
 {
     /** @use HasFactory<\Database\Factories\CompteBancaireFactory> */
     use HasFactory, SoftDeletes;
-    protected $primaryKey = 'Id_compte_bancaire';
+    // Primary key matches the migration (Id_compte)
+    protected $primaryKey = 'Id_compte';
     protected $fillable = [
         'num_compte',
-        'adresse_banque',
+        'adresse_bnq',
         'code_localite',
         'CODQEB',
         'GUICHB',

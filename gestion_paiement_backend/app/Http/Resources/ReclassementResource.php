@@ -16,7 +16,7 @@ class ReclassementResource extends JsonResource
             'date_effet_solde'      => $this->date_effet_solde?->format('Y-m-d'),
             'date_effet_anciennete' => $this->date_effet_anciennete?->format('Y-m-d'),
             'observation'           => $this->observation,
-
+            
             // Relation avec Carriere
             'carriere' => $this->whenLoaded('carriere', fn() => [
                 'Id_carriere' => $this->carriere->Id_carriere,
@@ -26,7 +26,15 @@ class ReclassementResource extends JsonResource
                 'classe'      => $this->carriere->classe,
                 'echelon'     => $this->carriere->echelon,
                 'indice'      => $this->carriere->indice,
+                'agent' => [
+                    'civilite' => $this->carriere?->agent?->civilite,
+                    'nom' => $this->carriere?->agent?->nom,
+                    'num_matricule' => $this->carriere?->agent?->num_matricule,
+                    'prenoms' => $this->carriere?->agent?->prenoms
+                ]
             ]),
+
+            
 
             'created_at' => $this->created_at?->format('Y-m-d H:i'),
         ];

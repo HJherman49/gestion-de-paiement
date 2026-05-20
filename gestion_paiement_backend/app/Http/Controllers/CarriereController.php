@@ -11,25 +11,27 @@ class CarriereController extends Controller
 {
     public function index()
     {
-        $carrieres = Carriere::with(['agent', 'bareme'])->paginate(15);
+        $carrieres = Carriere::with(['agent.direction', 'agent.service', 'bareme'])->paginate(15);
         return CarriereResource::collection($carrieres);
     }
 
     public function store(StoreCarriereRequest $request)
     {
         $carriere = Carriere::create($request->validated());
+        $carriere->load(['agent.direction', 'agent.service', 'bareme']);
         return new CarriereResource($carriere);
     }
 
     public function show(Carriere $carriere)
     {
-        $carriere->load(['agent', 'bareme']);
+        $carriere->load(['agent.direction', 'agent.service', 'bareme']);
         return new CarriereResource($carriere);
     }
 
     public function update(StoreCarriereRequest $request, Carriere $carriere)
     {
         $carriere->update($request->validated());
+        $carriere->load(['agent.direction', 'agent.service', 'bareme']);
         return new CarriereResource($carriere);
     }
 

@@ -16,11 +16,11 @@ class BanqueResource extends JsonResource
     {
         return [
             'Id_banque'         => $this->Id_banque,
-            'nom_banque'        => $this->Nom_banque,
+            'Nom_banque'        => $this->Nom_banque,
             'agence'            => $this->agence,
             'code_banque'       => $this->code_banque,
             'code_localite_bnq' => $this->code_localite_bnq,
-            'comptes_count'     => $this->whenCounted('comptesBancaires'),
+            'comptes_bancaires_count'     => $this->whenCounted('comptesBancaires'),
             'created_at'        => $this->created_at?->format('Y-m-d H:i'),
         ];
     }

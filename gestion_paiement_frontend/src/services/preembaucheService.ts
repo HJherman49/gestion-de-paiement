@@ -38,7 +38,7 @@ export interface PreembauchePayload {
   Fin_stage_PreEmb_txt:    string
   Montant_PreEmb:          number
   Montant_PreEmb_Contrat:  number
-  id_agent:                number   // ← lowercase dans fillable
+  Id_agent:                number
   Id_contrat:              number
 }
 

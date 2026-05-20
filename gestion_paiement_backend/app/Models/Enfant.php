@@ -12,7 +12,7 @@ class Enfant extends Model
 
     protected $primaryKey = 'Id_enfant';
     protected $fillable = [
-        'date_de_naissance',
+        'date_naissance',
         'Nb_enf',
         'Nb_enf_inf_15ans',
         'Nb_enf_sup_15ans',

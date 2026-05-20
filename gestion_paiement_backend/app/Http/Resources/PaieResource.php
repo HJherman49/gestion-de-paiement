@@ -50,11 +50,17 @@ class PaieResource extends JsonResource
             'Id_enfant'      => $this->Id_enfant,
 
             'agent' => $this->whenLoaded('agent', fn() => [
-                'Id_agent'      => $this->agent->Id_agent,
-                'nom'           => $this->agent->nom,
-                'prenoms'       => $this->agent->prenoms,
-                'num_matricule' => $this->agent->num_matricule,
-                'civilite'      => $this->agent->civilite,
+                'Id_agent'       => $this->agent->Id_agent,
+                'nom'            => $this->agent->nom,
+                'prenoms'        => $this->agent->prenoms,
+                'num_matricule'  => $this->agent->num_matricule,
+                'civilite'       => $this->agent->civilite,
+                'direction'      => $this->agent->direction ? [
+                    'Sigle' => $this->agent->direction->Sigle,
+                ] : null,
+                'service'        => $this->agent->service ? [
+                    'nom_service' => $this->agent->service->nom_service,
+                ] : null,
             ]),
 
             'enfant'     => $this->whenLoaded('enfant'),

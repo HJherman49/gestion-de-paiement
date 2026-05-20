@@ -53,7 +53,7 @@ class Paie extends Model
     
     public function agent()
     {
-        return $this->belongsTo(Agent::class, 'Id_agent', 'Id_agent');
+        return $this->belongsTo(Agent::class, 'id_agent', 'Id_agent');
     }
     public function enfant()
     {

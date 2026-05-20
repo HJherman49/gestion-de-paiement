@@ -190,16 +190,25 @@ export const ReclassementPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr><td colSpan={8} className="rp-empty"><span className="rp-spinner" /> Chargement...</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="rp-empty">Aucun reclassement trouvé</td></tr>
-              ) : filtered.map((r, i) => {
-                const agent    = r.carriere?.agent
-                const catNew   = CATEGORIE_COLORS[r.categ_reclassement]   ?? { bg: '#f0f0f0', color: '#666' }
-                const catOld   = CATEGORIE_COLORS[r.carriere?.Categorie ?? ''] ?? { bg: '#f0f0f0', color: '#666' }
+              {loading && (
+                <tr key="loading">
+                  <td colSpan={8} className="rp-empty">
+                    <span className="rp-spinner" /> Chargement...
+                  </td>
+                </tr>
+              )}
+              {!loading && filtered.length === 0 && (
+                <tr key="empty">
+                  <td colSpan={8} className="rp-empty">Aucun reclassement trouvé</td>
+                </tr>
+              )}
+              {!loading && filtered.map((r, i) => {
+                const agent  = r.carriere?.agent
+                const catNew = CATEGORIE_COLORS[r.categ_reclassement] ?? { bg: '#f0f0f0', color: '#666' }
+                const catOld = CATEGORIE_COLORS[r.carriere?.Categorie ?? ''] ?? { bg: '#f0f0f0', color: '#666' }
+                const rowKey = r.Id_reclassement ?? `recl-${i}`
                 return (
-                  <tr key={r.Id_reclassement} className={`rp-row ${i % 2 === 0 ? 'rp-row-even' : 'rp-row-odd'}`}>
+                  <tr key={rowKey} className={`rp-row ${i % 2 === 0 ? 'rp-row-even' : 'rp-row-odd'}`}>
                     <td>
                       {agent ? (
                         <>
@@ -257,11 +266,11 @@ export const ReclassementPage: React.FC = () => {
                 {Array.from({ length: lastPage }, (_, i) => i + 1)
                   .filter(p => p === 1 || p === lastPage || Math.abs(p - page) <= 1)
                   .map((p, idx, arr) => (
-                    <React.Fragment key={p}>
-                      {idx > 0 && arr[idx - 1] !== p - 1 && <span className="rp-ellipsis">…</span>}
-                      <button className={`rp-page-btn ${p === page ? 'active' : ''}`} onClick={() => setPage(p)}>{p}</button>
-                    </React.Fragment>
-                  ))
+                      <React.Fragment key={p}>
+                        {idx > 0 && arr[idx - 1] !== p - 1 && <span key={`ellipsis-${p}`} className="rp-ellipsis">…</span>}
+                        <button key={`page-${p}`} className={`rp-page-btn ${p === page ? 'active' : ''}`} onClick={() => setPage(p)}>{p}</button>
+                      </React.Fragment>
+                    ))
                 }
                 <button className="rp-page-btn" onClick={() => setPage(p => Math.min(lastPage, p + 1))} disabled={page === lastPage} title="Suivant">
                   <ChevronRight size={14} />
@@ -301,8 +310,9 @@ export const ReclassementPage: React.FC = () => {
                     const catNew = CATEGORIE_COLORS[r.categ_reclassement]   ?? { bg: '#f0f0f0', color: '#666' }
                     const catOld = CATEGORIE_COLORS[r.carriere?.Categorie ?? ''] ?? { bg: '#f0f0f0', color: '#666' }
                     const isLast = idx === items.length - 1
-                    return (
-                      <div key={r.Id_reclassement} className="rp-timeline-item">
+                      const tlKey = r.Id_reclassement ?? `tl-${idx}`
+                      return (
+                        <div key={tlKey} className="rp-timeline-item">
                         {/* Ligne verticale */}
                         <div className="rp-timeline-line-wrapper">
                           <div className={`rp-timeline-dot ${isLast ? 'latest' : ''}`} />

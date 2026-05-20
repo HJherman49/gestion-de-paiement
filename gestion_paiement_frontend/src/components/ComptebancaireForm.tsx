@@ -15,7 +15,7 @@ interface CompteBancaireFormProps {
 }
 
 const EMPTY: CompteBancairePayload = {
-  num_compte: '', adresse_banque: '', code_localite: '',
+  num_compte: '', adresse_bnq: '', code_localite: '',
   CODQEB: '', GUICHB: '', RIB: '', Id_agent: 0, Id_banque: 0,
 }
 
@@ -44,7 +44,7 @@ export const CompteBancaireForm: React.FC<CompteBancaireFormProps> = ({
     if (compte) {
       setForm({
         num_compte:     compte.num_compte,
-        adresse_banque: compte.adresse_banque,
+        adresse_bnq: compte.adresse_bnq,
         code_localite:  compte.code_localite,
         CODQEB:         compte.CODQEB,
         GUICHB:         compte.GUICHB,
@@ -62,7 +62,7 @@ export const CompteBancaireForm: React.FC<CompteBancaireFormProps> = ({
   const handleBanqueChange = (id: number) => {
     set('Id_banque', id)
     const b = banques.find(b => b.Id_banque === id)
-    if (b && !form.adresse_banque) set('adresse_banque', b.agence)
+    if (b && !form.adresse_bnq) set('adresse_bnq', b.agence)
   }
 
   const handleSubmit = async () => {
@@ -181,8 +181,8 @@ export const CompteBancaireForm: React.FC<CompteBancaireFormProps> = ({
               </div>
               <div className="cbf-field cbf-field--full">
                 <label className="cbf-label">Adresse banque</label>
-                <input className="cbf-input" value={form.adresse_banque}
-                  onChange={e => set('adresse_banque', e.target.value)}
+                <input className="cbf-input" value={form.adresse_bnq}
+                  onChange={e => set('adresse_bnq', e.target.value)}
                   placeholder="Ex: Rue Solombavambahoaka, Antananarivo" />
               </div>
             </div>

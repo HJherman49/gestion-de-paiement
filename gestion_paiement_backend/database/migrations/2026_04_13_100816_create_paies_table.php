@@ -33,7 +33,7 @@ return new class extends Migration
             $table->date('date_effet');
 
             // Clés étrangères
-            $table->unsignedBigInteger('id_agent');
+            $table->unsignedBigInteger('Id_agent');
             $table->unsignedBigInteger('Id_enfant')->nullable();
 
             $table->foreign('Id_agent')

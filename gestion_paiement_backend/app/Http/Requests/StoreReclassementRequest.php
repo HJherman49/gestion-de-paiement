@@ -12,7 +12,8 @@ class StoreReclassementRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Allow only authenticated users; routes are already protected by auth:sanctum
+        return auth()->check();
     }
 
     /**

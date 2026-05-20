@@ -21,7 +21,7 @@ class Preembauche extends Model
         'Fin_stage_PreEmb_txt', 
         'Montant_PreEmb', 
         'Montant_PreEmb_Contrat',
-        'id_agent', 
+        'Id_agent', 
         'Id_contrat'
     ];
     protected $casts = [

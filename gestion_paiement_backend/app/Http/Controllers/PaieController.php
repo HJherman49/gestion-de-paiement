@@ -15,7 +15,7 @@ class PaieController extends Controller
      */
     public function index()
     {
-        $paies = Paie::with(['agent', 'enfant'])
+        $paies = Paie::with(['agent.direction', 'agent.service', 'enfant'])
                      ->latest()
                      ->paginate(20);
 
@@ -32,7 +32,7 @@ class PaieController extends Controller
         $paie = Paie::create($request->validated());
 
         // Optionnel : charger les relations pour la réponse
-        $paie->load(['agent', 'enfant']);
+        $paie->load(['agent.direction', 'agent.service', 'enfant']);
 
         return new PaieResource($paie);
     }
@@ -42,7 +42,7 @@ class PaieController extends Controller
      */
     public function show(Paie $paie)
     {
-        $paie->load(['agent', 'enfant']);
+        $paie->load(['agent.direction', 'agent.service', 'enfant']);
         return new PaieResource($paie);
     }
 
@@ -52,7 +52,7 @@ class PaieController extends Controller
     public function update(StorePaieRequest $request, Paie $paie)
     {
         $paie->update($request->validated());
-        $paie->load(['agent', 'enfant']);
+        $paie->load(['agent.direction', 'agent.service', 'enfant']);
 
         return new PaieResource($paie);
     }
@@ -74,7 +74,7 @@ class PaieController extends Controller
     public function paiesParAgent($Id_agent)
     {
         $paies = Paie::where('Id_agent', $Id_agent)
-                     ->with('enfant')
+                     ->with(['agent.direction', 'agent.service', 'enfant'])
                      ->latest()
                      ->paginate(15);
 
