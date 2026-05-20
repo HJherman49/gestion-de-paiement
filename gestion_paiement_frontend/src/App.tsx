@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar'
 import { Login } from './components/Login'
 import { Dashboard } from './pages/Dashboard'
 import { AgentsPage } from './pages/AgentsPage'
+import { ParametresPage } from './pages/Parametrespage'
 import {BaremePage} from "./pages/BaremePage"
 import { PaiePage } from './pages/PaiePage'
 import {CarrierePage} from "./pages/CarrierePage"
@@ -100,7 +101,9 @@ const App: React.FC = () => {
       case 'preembauche':
         return <PreembauchePage />
       case 'historique':
-        return <HistoriquePage /> 
+        return <HistoriquePage />
+      case 'parametres':
+        return <ParametresPage />
       default:
         return (
           <div style={{

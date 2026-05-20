@@ -40,7 +40,16 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     try {
       // Login directly (CSRF not required for this endpoint)
       const response = await sanctumApi.post('/api/v1/login', { email, password });
-      const { token, user } = response.data.data;
+      const apiData = response.data;
+      const payload = apiData?.data ?? apiData;
+      const token = payload?.token ?? apiData?.token;
+      const user = payload?.user ?? apiData?.user;
+
+      if (!token || !user) {
+        console.error('Invalid login response payload:', apiData);
+        throw new Error('Réponse de connexion invalide');
+      }
+
       localStorage.setItem('token', token);
       onLogin(token, user);
     } catch (err: any) {
