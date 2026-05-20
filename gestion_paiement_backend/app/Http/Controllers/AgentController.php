@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Http\Resources\AgentResource;
 use App\Models\Agent;
+use App\Models\Historique;
 use Illuminate\Http\Request;
 
 class AgentController extends Controller
@@ -88,6 +89,9 @@ class AgentController extends Controller
 
         $agent = Agent::create($data);
 
+        // Enregistrer la création dans l'historique
+        Historique::log('agents', $agent->Id_agent, 'CREATE', null, null, null, auth()->user()?->name);
+
         // Retourner l'agent créé avec ses relations
         $agent->load(['direction', 'service', 'division', 'statut', 'contrat']);
 
@@ -153,7 +157,10 @@ class AgentController extends Controller
             }
         }
 
+        // Enregistrer les modifications dans l'historique
+        $before = $agent->getAttributes();
         $agent->update($data);
+        Historique::logChanges('agents', $agent->Id_agent, $before, $data, auth()->user()?->name);
 
         // Retourner l'agent mis à jour avec ses relations
         $agent->load(['direction', 'service', 'division', 'statut', 'contrat']);
@@ -170,6 +177,9 @@ class AgentController extends Controller
     // ------------------------------------------------
     public function destroy(Agent $agent)
     {
+        // Enregistrer la suppression dans l'historique
+        Historique::log('agents', $agent->Id_agent, 'DELETE', null, null, null, auth()->user()?->name);
+        
         $agent->delete(); // SoftDelete — l'agent n'est pas effacé physiquement
 
         return response()->json([

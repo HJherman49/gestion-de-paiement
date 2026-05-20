@@ -28,15 +28,6 @@ class Historique extends Model
         'id_enregistrement'=> 'integer',
     ];
 
-    // ── Helper statique pour enregistrer facilement ────────────────────────
-    /**
-     * Enregistre une action dans l'historique.
-     *
-     * Usage:
-     *   Historique::log('agents', $agent->Id_agent, 'CREATE', null, null, null, auth()->user()?->name);
-     *   Historique::log('agents', $agent->Id_agent, 'UPDATE', 'nom', 'RAKOTO', 'RABE', auth()->user()?->name);
-     *   Historique::log('agents', $agent->Id_agent, 'DELETE', null, null, null, auth()->user()?->name);
-     */
     public static function log(
         string  $table,
         int     $idEnregistrement,

@@ -49,7 +49,7 @@ class HistoriqueController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => HistoriqueResource::collection($historiques),
+            'data'    => HistoriqueResource::collection($historiques->items()),
             'meta'    => [
                 'current_page' => $historiques->currentPage(),
                 'last_page'    => $historiques->lastPage(),

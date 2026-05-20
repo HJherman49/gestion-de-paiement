@@ -16,10 +16,10 @@ const NAV_ITEMS: { id: string; label: string; children?: string[] }[] = [
   { id: 'bareme', label: 'Bareme' },
   { id: 'carriere', label: 'Carrière' },
   { id: 'reclassement', label: 'Reclassement' },
-  { id: 'paie', label: 'Paiement' },
   { id: 'banque', label: 'Banque' },
   { id: 'fonction', label: 'Fonction' },
   { id: 'preembauche', label: 'Préembauche' },
+  { id: 'paie', label: 'Paiement' },
  // { id: 'about', label: 'Qui sommes-nous ?' },
 ]
 
