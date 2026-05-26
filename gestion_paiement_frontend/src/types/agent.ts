@@ -75,9 +75,10 @@ export interface Agent {
   division?: Division
   statut?: Statut
   contrat?: Contrat
+  enfants?: Array<{ Id_enfant?: number; date_de_naissance?: string }>
 }
 
-export type AgentFormData = Omit<Agent, 'Id_agent' | 'direction' | 'service' | 'division' | 'statut' | 'contrat'> & {
+export type AgentFormData = Omit<Agent, 'Id_agent' | 'direction' | 'service' | 'division' | 'statut' | 'contrat' | 'enfants'> & {
   Id_direction?: number | string
   Id_service?: number | string
   Id_division?: number | string

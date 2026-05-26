@@ -169,7 +169,7 @@ export const PreembauchePage: React.FC = () => {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={6} className="pep-empty">Aucun dossier trouvé</td></tr>
               ) : filtered.map((p, i) => (
-                <tr key={p.Id_preembauche} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
+                <tr key={`${p.Id_preembauche ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
                   <td>
                     {p.agent ? (
                       <>
@@ -216,7 +216,7 @@ export const PreembauchePage: React.FC = () => {
               ) : filtered.map((p, i) => {
                 const days = dureeDays(p.Deb_stage_PreEmb, p.Fin_stage_PreEmb)
                 return (
-                  <tr key={p.Id_preembauche} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
+                  <tr key={`${p.Id_preembauche ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
                     <td>
                       {p.agent ? (
                         <>
@@ -264,7 +264,7 @@ export const PreembauchePage: React.FC = () => {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="pep-empty">Aucun contrat trouvé</td></tr>
               ) : filtered.map((p, i) => (
-                <tr key={p.Id_preembauche} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
+                <tr key={`${p.Id_preembauche ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
                   <td>
                     {p.agent ? (
                       <>

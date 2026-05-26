@@ -27,7 +27,7 @@ class PaieResource extends JsonResource
             'annee'          => $this->annee,
             'periode'        => $this->mois . '/' . $this->annee,
 
-            // ✅ (float) pour forcer number et non string
+            // (float) pour forcer number et non string
             'salaire_brut'   => (float)($this->salaire_brut ?? 0),
             'prime'          => (float)($this->prime ?? 0),
             'prime_speciale' => (float)($this->prime_speciale ?? 0),

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Validation\Rule;
 class StoreCompteBancaireRequest extends FormRequest
 {
     /**
@@ -22,8 +22,13 @@ class StoreCompteBancaireRequest extends FormRequest
      */
     public function rules(): array
     {
+        $compteBancaire = $this->route('compte_bancaire');
+        $numCompteRule = Rule::unique('compte_bancaires', 'num_compte');
+        if ($compteBancaire){
+            $numCompteRule = $numCompteRule -> ignore($compteBancaire->Id_compte, 'Id_compte');
+        }
         return [
-            'num_compte'   => 'required|string|unique:compte_bancaires,num_compte',
+            'num_compte'   => ['required', 'string', $numCompteRule],
             'adresse_bnq'  => 'required|string',
             'code_localite'=> 'required|string',
             'CODQEB'       => 'nullable|string',

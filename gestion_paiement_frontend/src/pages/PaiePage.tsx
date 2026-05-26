@@ -3,6 +3,7 @@ import { Plus, Eye, Pencil, Trash2, Search, FileText, ChevronLeft, ChevronRight,
 import { getPaies, createPaie, updatePaie, deletePaie, type PaieFromAPI, type PaiePayload } from '../services/paieService'
 import { PaieForm } from '../components/PaieForm'
 import '../styles/pages/PaiePage.css'
+import { exportPdf } from '../axios'
 
 const MOIS = [
   'Jan','Fév','Mar','Avr','Mai','Juin',
@@ -196,6 +197,9 @@ export const PaiePage: React.FC = () => {
                       </button>
                       <button className="pp-icon-btn pp-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(p.Id_paie)}>
                         <Trash2 size={13} />
+                      </button>
+                      <button className="ap-btn-secondary" title="Exporter ce bulletin" onClick={() => exportPdf(p.Id_paie)}>
+                        <Download size={14} />
                       </button>
                     </div>
                   </td>

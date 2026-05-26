@@ -105,7 +105,7 @@ export const BanquePage: React.FC = () => {
 
   // ── Sauvegarde compte ─────────────────────────────────────────────────────
   const handleSaveCompte = async (data: CompteBancairePayload) => {
-    if (editCompte) { await updateCompte(editCompte.Id_compte_bancaire, data); alert('Compte modifié') }
+    if (editCompte) { await updateCompte(editCompte.Id_compte, data); alert('Compte modifié') }
     else            { await createCompte(data); alert('Compte créé') }
     loadComptes(); setShowCompteForm(false); setEditCompte(null)
   }
@@ -260,7 +260,7 @@ export const BanquePage: React.FC = () => {
                   </tr>
                 )}
                 {!loadingC && filteredComptes.map((c, i) => (
-                  <tr key={`compte-${c.Id_compte_bancaire ?? i}`} className={`bp-row ${i % 2 === 0 ? 'bp-row-even' : 'bp-row-odd'}`}>
+                  <tr key={`compte-${c.Id_compte ?? i}`} className={`bp-row ${i % 2 === 0 ? 'bp-row-even' : 'bp-row-odd'}`}>
                     <td>
                       {c.agent ? (
                         <>
@@ -285,7 +285,7 @@ export const BanquePage: React.FC = () => {
                       <div className="bp-actions">
                         <button className="bp-icon-btn" title="Voir" onClick={() => setViewCompte(c)}><Eye size={13} /></button>
                         <button className="bp-icon-btn bp-icon-btn--edit" title="Modifier" onClick={() => { setEditCompte(c); setShowCompteForm(true) }}><Pencil size={13} /></button>
-                        <button className="bp-icon-btn bp-icon-btn--delete" title="Supprimer" onClick={() => handleDeleteCompte(c.Id_compte_bancaire)}><Trash2 size={13} /></button>
+                        <button className="bp-icon-btn bp-icon-btn--delete" title="Supprimer" onClick={() => handleDeleteCompte(c.Id_compte)}><Trash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -312,7 +312,7 @@ export const BanquePage: React.FC = () => {
                   <div className="bp-modal-sub">{viewBanque.agence}</div>
                 </div>
               </div>
-              <button className="bp-modal-close" onClick={() => setViewBanque(null)}>x<X size={16} /></button>
+              <button className="bp-modal-close" onClick={() => setViewBanque(null)} aria-label="Fermer"><X size={16} /></button>
             </div>
             <div className="bp-modal-body">
               <div className="bp-modal-grid">
@@ -354,7 +354,9 @@ export const BanquePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <button className="bp-modal-close" onClick={() => setViewCompte(null)}>x<X size={16} /></button>
+              <button
+                type="button"className="bp-modal-close"onClick={() => setViewCompte(null)}aria-label="Fermer"><X size={16} />
+              </button>
             </div>
             <div className="bp-modal-body">
               {/* RIB complet */}

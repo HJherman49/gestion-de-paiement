@@ -20,7 +20,7 @@ export interface BanquePayload {
 }
 
 export interface CompteBancaireFromAPI {
-  Id_compte_bancaire: number
+  Id_compte:        number
   num_compte:         string
   adresse_bnq:     string
   code_localite:      string

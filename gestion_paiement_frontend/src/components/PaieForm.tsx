@@ -55,6 +55,31 @@ const EMPTY: PaiePayload = {
   Id_enfant: undefined,
 }
 
+const safeString = (value: string | null | undefined) => value ?? ''
+const safeNumber = (value: number | null | undefined) => value ?? 0
+const normalizePaie = (paie: PaieFromAPI): PaiePayload => ({
+  mois:            safeNumber(paie.mois),
+  annee:           safeNumber(paie.annee),
+  salaire_brut:    safeNumber(paie.salaire_brut),
+  prime:           safeNumber(paie.prime),
+  scola:           safeNumber(paie.scola),
+  remboursement:   safeNumber(paie.remboursement),
+  Indice:          safeNumber(paie.Indice),
+  prime_speciale:  safeNumber(paie.prime_speciale),
+  prime_fin_annee: safeNumber(paie.prime_fin_annee),
+  alloc:           safeNumber(paie.alloc),
+  logement:        safeNumber(paie.logement),
+  IGR:             safeNumber(paie.IGR),
+  rappel:          safeNumber(paie.rappel),
+  PA:              safeNumber(paie.PA),
+  mode_paie:       safeString(paie.mode_paie),
+  chap:            safeString(paie.chap),
+  art:             safeString(paie.art),
+  date_effet:      safeString(paie.date_effet),
+  Id_agent:        safeNumber(paie.Id_agent),
+  Id_enfant:       paie.Id_enfant === undefined ? undefined : safeNumber(paie.Id_enfant),
+})
+
 // num 
 const NumField = React.memo<{
   label: string;
@@ -105,30 +130,11 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   // ── Pré-remplir si édition ────────────────────────────────────────────────
   useEffect(() => {
     if (paie) {
-      setForm({
-        mois:            paie.mois,
-        annee:           paie.annee,
-        salaire_brut:    paie.salaire_brut,
-        prime:           paie.prime,
-        scola:           paie.scola,
-        remboursement:   paie.remboursement,
-        Indice:          paie.Indice,
-        prime_speciale:  paie.prime_speciale,
-        prime_fin_annee: paie.prime_fin_annee,
-        alloc:           paie.alloc,
-        logement:        paie.logement,
-        IGR:             paie.IGR,
-        rappel:          paie.rappel,
-        PA:              paie.PA,
-        mode_paie:       paie.mode_paie,
-        chap:            paie.chap,
-        art:             paie.art,
-        date_effet:      paie.date_effet,
-        Id_agent:        paie.Id_agent,
-        Id_enfant:       paie.Id_enfant,
-      })
+      setForm(normalizePaie(paie))
+    } else {
+      setForm({ ...EMPTY, Id_agent: defaultAgentId ?? 0 })
     }
-  }, [paie])
+  }, [paie, defaultAgentId])
 
   const set = (key: keyof PaiePayload, value: any) =>
     setForm(prev => ({ ...prev, [key]: value }))
@@ -236,7 +242,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                   <input
                     type="number"
                     className="pf-input"
-                    value={form.annee}
+                    value={form.annee || ''}
                     onChange={e => set('annee', Number(e.target.value))}
                     min="2000" max="2099"
                     placeholder="2025"
@@ -245,7 +251,13 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                 {/* Date d'effet */}
                 <div className="pf-field">
                   <label className="pf-label">Date d'effet</label>
-                  <input type="date" className="pf-input" value={form.date_effet} onChange={e => set('date_effet', e.target.value)} title="Date d'effet" />
+                  <input
+                    type="date"
+                    className="pf-input"
+                    value={form.date_effet || ''}
+                    onChange={e => set('date_effet', e.target.value)}
+                    title="Date d'effet"
+                  />
                 </div>
               </div>
 
@@ -272,12 +284,24 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                 {/* Chapitre */}
                 <div className="pf-field">
                   <label className="pf-label">Chapitre (CHAP)</label>
-                  <input type="text" className="pf-input" value={form.chap} onChange={e => set('chap', e.target.value)} placeholder="Ex: 621" />
+                  <input
+                    type="text"
+                    className="pf-input"
+                    value={form.chap || ''}
+                    onChange={e => set('chap', e.target.value)}
+                    placeholder="Ex: 621"
+                  />
                 </div>
                 {/* Article */}
                 <div className="pf-field">
                   <label className="pf-label">Article (ART)</label>
-                  <input type="text" className="pf-input" value={form.art} onChange={e => set('art', e.target.value)} placeholder="Ex: 6211" />
+                  <input
+                    type="text"
+                    className="pf-input"
+                    value={form.art || ''}
+                    onChange={e => set('art', e.target.value)}
+                    placeholder="Ex: 6211"
+                  />
                 </div>
               </div>
 
