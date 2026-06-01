@@ -78,6 +78,7 @@ class AgentController extends Controller
             'date_retraite'      => 'nullable|date|after:date_entree_admin',
             'categ_retraite'     => 'nullable|string',
             'N_Cnaps'            => 'nullable|string|max:50',
+            'porte'              => 'nullable|string|max:50',
             'pp_gale'            => 'nullable|numeric|min:0',
             // Clés étrangères
             'Id_direction'       => 'required|exists:directions,Id_direction',
@@ -143,6 +144,7 @@ class AgentController extends Controller
             'categ_retraite'     => 'nullable|string',
             'N_Cnaps'            => 'nullable|string|max:50',
             'pp_gale'            => 'nullable|numeric|min:0',
+            'porte'              => 'nullable|string|max:50',
             // Clés étrangères
             'Id_direction'       => 'sometimes|exists:directions,Id_direction',
             'Id_service'         => 'sometimes|exists:services,Id_service',

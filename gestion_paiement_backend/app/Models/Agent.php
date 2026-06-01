@@ -30,6 +30,7 @@ class Agent extends Model
         'date_delivrance_CI',
         'lieu_delivrance_CI',
         'N_Cnaps',
+        'porte',
         'pp_gale',
         'Id_direction',
         'Id_service',
@@ -50,18 +51,18 @@ class Agent extends Model
     // ------------------------------------------------
     // MUTATORS — Convert empty strings to NULL
     // ------------------------------------------------
-    public function setDateRetraiteAttribute(string $value)
+    public function setDateRetraiteAttribute(?string $value)
     {
         // Accept null or empty string from requests and store as NULL in DB
         $this->attributes['date_retraite'] = ($value === null || $value === '') ? null : $value;
     }
 
-    public function setCategRetraiteAttribute(string $value)
+    public function setCategRetraiteAttribute(?string $value)
     {
         $this->attributes['categ_retraite'] = ($value === null || $value === '') ? null : $value;
     }
 
-    public function setNCnapsAttribute(string $value)
+    public function setNCnapsAttribute(?string $value)
     {
         $this->attributes['N_Cnaps'] = ($value === null || $value === '') ? null : $value;
     }
@@ -149,7 +150,7 @@ class Agent extends Model
     {
         return $this->belongsToMany(
             Diplome::class,
-            'agent_diplomes',
+            'agent_diplome',
             'Id_agent',
             'Id_diplome'
         );

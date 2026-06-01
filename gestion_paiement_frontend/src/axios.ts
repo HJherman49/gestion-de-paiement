@@ -59,5 +59,31 @@ api.interceptors.response.use(
     }
 );
 
-export { sanctumApi, api };
+const exportPdf = async (id: number): Promise<void> => {
+    try {
+        const response = await api.get(
+            `/paies/${id}/pdf`,
+            {
+                responseType: "blob",
+            }
+        );
+
+        const url = window.URL.createObjectURL(
+            new Blob([response.data], { type: "application/pdf" })
+        );
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `bulletin_${id}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Erreur lors du téléchargement du PDF :", error);
+    }
+};
+
+export { sanctumApi, api, exportPdf };
 export default api;

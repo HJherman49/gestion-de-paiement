@@ -167,7 +167,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       } else if (tabKey === 'diplomes') {
         const res = await api.get('/diplomes')
         const raw: any[] = res.data.data ?? res.data ?? []
-        setData(prev => ({ ...prev, diplomes: raw.map(x => ({ id: x.Id_diplome, label: x.nom_diplome, extra: x.specialite })) }))
+        setData(prev => ({ ...prev, diplomes: raw.map(x => ({ id: x.Id_diplome, label: x.libelle, extra: x['specialite'] })) }))
       }
 
     } catch (err: any) {
@@ -231,7 +231,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         const payloads: Record<string, Record<string, string>> = {
           statuts:   { type_statut: newLabel.trim() },
           contrats:  { type_contrat: newLabel.trim(), duree: newExtra.trim() },
-          diplomes:  { nom_diplome: newLabel.trim(), specialite: newExtra.trim() },
+          diplomes:  { libelle: newLabel.trim(), 'specialite': newExtra.trim() },
         }
         await api.post(`/${activeTab}`, payloads[activeTab])
       }

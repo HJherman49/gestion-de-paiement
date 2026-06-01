@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Search, Plus, Eye, Pencil, Trash2, Filter, Download, X, Phone, MapPin, Calendar, CreditCard, Building2, Layers, GitBranch, GraduationCap, Baby, Shield, FileText, ChevronRight, User } from 'lucide-react'
+import { Search, Plus, Eye, Pencil, Trash2, Filter, Download, X, Phone, MapPin, Calendar, CreditCard, Building2, Layers, GitBranch, GraduationCap, Baby, Shield, FileText, ChevronRight, User, Mail } from 'lucide-react'
 import type { Agent, AgentFormData, Statut } from '../types/agent'
 import { AgentForm } from '../components/AgentForm'
 import { getAgents, getStatuts, createAgent, updateAgent, deleteAgent } from '../services/agentService'
@@ -344,6 +344,7 @@ export const AgentsPage: React.FC = () => {
                         { label: 'Date délivrance CIN',   value: viewAgent.date_delivrance_CI },
                         { label: 'Lieu délivrance CIN',   value: viewAgent.lieu_delivrance_CI },
                         { label: 'Téléphone',             value: viewAgent.tel,               icon: <Phone size={11} /> },
+                        { label: 'Email',                 value: viewAgent.mail,              icon: <Mail size={11} /> },
                         { label: 'Adresse',               value: viewAgent.adresse,           icon: <MapPin size={11} />, full: true },
                       ].map(({ label, value, icon, full }) => (
                         <div key={label} className={`ap-modal-field-v2 ${full ? 'ap-modal-field-v2--full' : ''}`}>

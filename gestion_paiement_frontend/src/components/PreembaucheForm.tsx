@@ -118,7 +118,7 @@ export const PreembaucheForm: React.FC<PreembaucheFormProps> = ({
               {preembauche ? 'Modifier la préembauche' : 'Nouvelle préembauche'}
             </h2>
             <p className="pef-header-sub">
-              {preembauche ? `Préembauche #${preembauche.Id_preembauche}` : 'Enregistrer un dossier de préembauche'}
+              {preembauche ? `Préembauche #${preembauche.Id_preemb}` : 'Enregistrer un dossier de préembauche'}
             </p>
           </div>
           <button className="pef-close-btn" onClick={onClose} aria-label="Fermer"><X size={16} /></button>

@@ -9,6 +9,7 @@ use App\Models\Paie;
 use App\Models\Agent;
 use App\Traits\LogsHistorique;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PaieController extends Controller
 {
@@ -86,5 +87,13 @@ class PaieController extends Controller
                      ->paginate(15);
 
         return PaieResource::collection($paies);
+    }
+    public function exportBulletin($id)
+    {
+        $paie = Paie::findOrFail($id);
+
+        $pdf = Pdf::loadView('pdf.bulletin', compact('paie'));
+
+        return $pdf->download("bulletin_{$id}.pdf");
     }
 }

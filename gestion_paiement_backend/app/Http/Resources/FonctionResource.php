@@ -11,10 +11,12 @@ class FonctionResource extends JsonResource
     {
         return [
             'Id_fonction'      => $this->Id_fonction,
+            'Id_agent'        => $this->Id_agent,
+            'Id_direction'    => $this->Id_direction,
             'nom_fonction'     => $this->nom_fonction,
             'date_fonction'    => $this->date_fonction?->format('Y-m-d'),
             'date_affectation' => $this->date_affectation?->format('Y-m-d'),
-            'fonction_prime'   => number_format($this->fonction_prime ?? 0, 2),
+            'fonction_prime'   => (float)($this->fonction_prime ?? 0),
             'num_fonct'        => $this->num_fonct,
 
             // Relations
@@ -25,9 +27,11 @@ class FonctionResource extends JsonResource
             ]),
 
             'agent'            => $this->whenLoaded('agent', fn() => [
-                'Id_agents'     => $this->agent->id_agents,
-                'nom_complet'   => $this->agent->nom . ' ' . $this->agent->prenoms,
-                'num_matricule' => $this->agent->num_matricule,
+                'Id_agent'     => $this->agent->Id_agent,
+                'nom'          => $this->agent->nom,
+                'prenoms'      => $this->agent->prenoms,
+                'civilite'     => $this->agent->civilite,
+                'num_matricule'=> $this->agent->num_matricule,
             ]),
 
             'created_at'       => $this->created_at?->format('Y-m-d H:i'),

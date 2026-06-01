@@ -147,3 +147,93 @@
     font-size: 16px;
   }
 }
+/* Ajouts au Login.css existant */
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--instat-gray-200);
+}
+
+.login-brand-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--instat-dark);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.login-brand-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--instat-dark);
+  margin: 0;
+}
+
+.login-brand-sub {
+  font-size: 11px;
+  color: var(--instat-gray-400);
+  margin-top: 2px;
+}
+
+/* Mot de passe avec œil */
+.login-pwd-wrapper {
+  position: relative;
+}
+.login-pwd-wrapper .form-input {
+  padding-right: 40px;
+}
+.login-pwd-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--instat-gray-400);
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+.login-pwd-eye:hover { color: var(--instat-dark); }
+
+/* Spinner dans bouton */
+.login-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: login-spin 0.7s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes login-spin { to { transform: rotate(360deg); } }
+
+/* Bouton login avec flex */
+.login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Note footer */
+.login-footer-note {
+  margin-top: 20px;
+  font-size: 11px;
+  color: var(--instat-gray-400);
+  text-align: center;
+  line-height: 1.5;
+}

@@ -91,7 +91,7 @@ export const CompteBancaireForm: React.FC<CompteBancaireFormProps> = ({
         <div className="cbf-header">
           <div>
             <h2 className="cbf-header-title">{compte ? 'Modifier le compte' : 'Nouveau compte bancaire'}</h2>
-            <p className="cbf-header-sub">{compte ? `Compte #${compte.Id_compte_bancaire}` : 'Enregistrer un RIB agent'}</p>
+            <p className="cbf-header-sub">{compte ? `Compte #${compte.Id_compte}` : 'Enregistrer un RIB agent'}</p>
           </div>
           <button className="ff-close-btn" onClick={onClose} aria-label="Fermer"><X size={16} /></button>
         </div>

@@ -14,16 +14,21 @@ class AgentResource extends JsonResource
             'num_matricule'      => $this->num_matricule,
             'nom'                => $this->nom,
             'prenoms'            => $this->prenoms,
-            'nom_complet'        => $this->nom . ' ' . $this->prenoms,
             'adresse'            => $this->adresse,
             'N_CIN'              => $this->N_CIN,
             'date_naissance'     => $this->date_naissance?->format('Y-m-d'),
             'sexe'               => $this->sexe,
             'civilite'           => $this->civilite,
+            'mail'                => $this->mail,
             'tel'                => $this->tel,
             'date_entree_admin'  => $this->date_entree_admin?->format('Y-m-d'),
             'date_delivrance_CI' => $this->date_delivrance_CI?->format('Y-m-d'),
             'lieu_delivrance_CI' => $this->lieu_delivrance_CI,
+            'date_retraite'      => $this->date_retraite?->format('Y-m-d'),
+            'categ_retraite'     => $this->categ_retraite,
+            'N_Cnaps'           => $this->N_Cnaps,
+            'porte'              => $this->porte,
+            'pp_gale'           => (float)($this->pp_gale ?? 0),
 
             // Relations simples
             'direction' => $this->whenLoaded('direction', fn() => [

@@ -35,6 +35,12 @@ class StoreAgentRequest extends FormRequest
             'lieu_delivrance_CI'  => 'required|string|max:100',
             'civilite'            => 'required|in:Mr,Mme,Melle',
             'tel'                 => 'required|string|max:20',
+            'mail'                => 'required|email|max:100',
+            'date_retraite'       => 'nullable|date|after_or_equal:date_entree_admin',
+            'categ_retraite'      => 'nullable|string|max:50',
+            'N_Cnaps'            => 'nullable|string|max:50',
+            'porte'               => 'nullable|string|max:50',
+            'pp_gale'            => 'nullable|numeric|min:0|max:100',
 
             'Id_direction'        => 'required|exists:directions,Id_direction',
             'Id_service'          => 'required|exists:services,Id_service',

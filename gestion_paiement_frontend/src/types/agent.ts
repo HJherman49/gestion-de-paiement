@@ -58,9 +58,9 @@ export interface Agent {
   civilite?: Civilite
   tel?: string
   mail?: string
-  porte?: string
   categ_retraite?: string | null
   N_Cnaps?: string | null
+  porte?: string | null
   pp_gale?: number
   date_retraite?: string | null
   // FK
@@ -75,9 +75,10 @@ export interface Agent {
   division?: Division
   statut?: Statut
   contrat?: Contrat
+  enfants?: Array<{ Id_enfant?: number; date_de_naissance?: string }>
 }
 
-export type AgentFormData = Omit<Agent, 'Id_agent' | 'direction' | 'service' | 'division' | 'statut' | 'contrat'> & {
+export type AgentFormData = Omit<Agent, 'Id_agent' | 'direction' | 'service' | 'division' | 'statut' | 'contrat' | 'enfants'> & {
   Id_direction?: number | string
   Id_service?: number | string
   Id_division?: number | string

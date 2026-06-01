@@ -10,9 +10,37 @@ interface NavbarProps {
   onOpenAdmin: () => void
   user?: any
   onLogout?: () => void
+  userPermissions: string[]
 }
 
+<<<<<<< HEAD
 const NAV_ITEMS = [
+=======
+// Page Permissions mapping
+const PAGE_PERMISSIONS: Record<string, string[]> = {
+  dashboard:    [],
+  agents:       ['agents.voir'],
+  bareme:       ['baremes.voir'],
+  paie:         ['paies.voir'],
+  carriere:     ['carrieres.voir'],
+  reclassement: ['reclassements.voir'],
+  banque:       ['banques.voir', 'comptes_bancaires.voir'],
+  fonction:     ['fonctions.voir'],
+  preembauche:  ['preembauches.voir'],
+  historique:   ['historique.voir'],
+  parametres:   ['parametres.voir', 'utilisateurs.voir'],
+}
+
+// Helper function for permission check
+const canAccess = (page: string, permissions: string[]): boolean => {
+  const required = PAGE_PERMISSIONS[page]
+  if (!required || required.length === 0) return true
+  if (required.includes('parametres.voir')) return true
+  return required.some(p => permissions.includes(p))
+}
+
+const ALL_ITEMS: { id: string; label: string; children?: string[] }[] = [
+>>>>>>> 7bbca741af64d4d99bdd28dbc8488368093643fb
   { id: 'dashboard', label: 'Tableau de bord' },
   { id: 'agents', label: 'Agents' },
   { id: 'bareme', label: 'Bareme' },
@@ -35,7 +63,15 @@ export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAd
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
 
+<<<<<<< HEAD
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+=======
+  // Filter menu items based on user permissions
+  const userPermissions = user?.permissions ?? []
+  const menuItems = ALL_ITEMS.filter(item =>
+    canAccess(item.id, userPermissions)
+  )
+>>>>>>> 7bbca741af64d4d99bdd28dbc8488368093643fb
 
   return (
     <header className="navbar-header">
@@ -51,9 +87,21 @@ export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAd
             <span className="navbar-subtitle">Système RH · Madagascar</span>
           </div>
 
+<<<<<<< HEAD
           {/* Onglets principaux */}
           <div className="navbar-items">
             {NAV_ITEMS.map(item => (
+=======
+        {/* Navigation items */}
+        <div style={{ display: 'flex', alignItems: 'stretch', height: '60px', flex: 1 }}>
+          {menuItems.map(item => (
+            <div
+              key={item.id}
+              style={{ position: 'relative' }}
+              onMouseEnter={() => item.children && setOpenDropdown(item.id)}
+              onMouseLeave={() => setOpenDropdown(null)}
+            >
+>>>>>>> 7bbca741af64d4d99bdd28dbc8488368093643fb
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}

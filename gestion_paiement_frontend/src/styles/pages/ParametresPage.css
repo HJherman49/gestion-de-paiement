@@ -1,0 +1,399 @@
+/* ═══════════════════════════════════════════════════════
+   ParametresPage.css  —  Préfixe prm-
+   ═══════════════════════════════════════════════════════ */
+
+.prm-page {
+  padding: 28px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Header */
+.prm-header  { margin-bottom: 24px; }
+.prm-title   { font-size: 22px; font-weight: 700; color: var(--instat-dark); margin-bottom: 4px; }
+.prm-subtitle{ font-size: 13px; color: var(--instat-gray-400); }
+
+/* Onglets */
+.prm-tabs {
+  display: flex; gap: 4px; margin-bottom: 20px;
+  background: var(--instat-gray-50);
+  border: 1px solid var(--instat-gray-200);
+  border-radius: 10px; padding: 4px; width: fit-content;
+}
+.prm-tab {
+  padding: 8px 18px; border: none; border-radius: 7px;
+  background: none; cursor: pointer;
+  font-size: 13px; font-weight: 500;
+  color: var(--instat-gray-500);
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 7px;
+  transition: all 0.15s;
+}
+.prm-tab.active {
+  background: #fff; color: var(--instat-dark); font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* Grille 2 colonnes */
+.prm-grid-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+/* Carte */
+.prm-card {
+  background: #fff;
+  border: 1px solid var(--instat-gray-200);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.prm-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--instat-gray-200);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prm-card-icon  { color: var(--instat-gray-500); flex-shrink: 0; }
+.prm-card-title { font-size: 14px; font-weight: 700; color: var(--instat-dark); flex: 1; }
+.prm-card-count {
+  font-size: 12px; color: var(--instat-gray-400);
+  background: var(--instat-gray-100);
+  padding: 2px 10px; border-radius: 20px;
+}
+
+.prm-card-body { padding: 20px; }
+
+/* Avatar section */
+.prm-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--instat-gray-50);
+  border-radius: 10px;
+}
+
+.prm-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--instat-dark);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.prm-avatar-name { font-size: 15px; font-weight: 700; color: var(--instat-dark); }
+.prm-avatar-role { margin-top: 5px; }
+
+/* Grille interne */
+.prm-grid-2-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+/* Champs */
+.prm-field { display: flex; flex-direction: column; }
+.prm-label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: var(--instat-gray-500); margin-bottom: 5px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.prm-input {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--instat-gray-200);
+  border-radius: 8px; font-size: 13px;
+  color: var(--instat-dark); outline: none;
+  font-family: 'DM Sans', sans-serif;
+  background: #fff; transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.prm-input:focus { border-color: var(--instat-dark); box-shadow: 0 0 0 3px rgba(26,31,60,0.06); }
+.prm-input--disabled { background: var(--instat-gray-50); color: var(--instat-gray-400); cursor: not-allowed; }
+
+/* Mot de passe avec œil */
+.prm-pwd-wrapper { position: relative; }
+.prm-pwd-wrapper .prm-input { padding-right: 36px; }
+.prm-pwd-eye {
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--instat-gray-400);
+  display: flex; align-items: center;
+}
+
+/* Séparateur section */
+.prm-section-divider {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--instat-dark);
+  margin: 16px 0 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--instat-gray-100);
+}
+
+/* Messages feedback */
+.prm-msg {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 8px;
+  font-size: 13px; margin-bottom: 12px;
+}
+.prm-msg--ok  { background: #f0faf4; border: 1px solid #c3e6cb; color: #1a6b3c; }
+.prm-msg--err { background: #fee;    border: 1px solid #fbb;    color: #c0392b; }
+
+/* Boutons */
+.prm-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+
+.prm-btn-save {
+  padding: 9px 20px; border-radius: 8px; border: none;
+  background: var(--instat-dark); color: #fff;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s;
+}
+.prm-btn-save:hover    { background: #151a32; }
+.prm-btn-save:disabled { background: var(--instat-gray-300); cursor: not-allowed; }
+
+.prm-btn-cancel {
+  padding: 9px 16px; border-radius: 8px;
+  border: 1px solid var(--instat-gray-200); background: #fff;
+  color: var(--instat-gray-600); font-size: 13px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.prm-btn-add {
+  padding: 7px 14px; border-radius: 8px; border: none;
+  background: var(--instat-dark); color: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 5px;
+  margin-left: auto;
+}
+
+/* Toggle switch */
+.prm-toggle {
+  width: 42px; height: 24px; border-radius: 12px; border: none;
+  cursor: pointer; background: var(--instat-gray-200);
+  position: relative; flex-shrink: 0; transition: background 0.2s;
+}
+.prm-toggle.on { background: var(--instat-dark); }
+.prm-toggle-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: left 0.2s;
+}
+.prm-toggle.on .prm-toggle-knob { left: 21px; }
+
+/* Préférences */
+.prm-pref-row {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid var(--instat-gray-100);
+}
+.prm-pref-row:last-child { border-bottom: none; }
+.prm-pref-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--instat-gray-50);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--instat-gray-500); flex-shrink: 0;
+}
+.prm-pref-text { flex: 1; }
+.prm-pref-label { font-size: 13px; font-weight: 600; color: var(--instat-dark); }
+.prm-pref-desc  { font-size: 11px; color: var(--instat-gray-400); margin-top: 1px; }
+
+/* ── UTILISATEURS ── */
+
+/* Formulaire ajout/modification */
+.prm-user-form {
+  background: var(--instat-gray-50);
+  border-bottom: 1px solid var(--instat-gray-200);
+  padding: 20px;
+}
+.prm-user-form-title {
+  font-size: 13px; font-weight: 700; color: var(--instat-dark);
+  margin-bottom: 14px;
+}
+.prm-user-form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;
+}
+.prm-user-form-actions {
+  display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;
+}
+
+/* Aperçu permissions du rôle */
+.prm-role-preview {
+  display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap;
+  background: #f0f4ff; border: 1px solid #c0d4f5;
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; color: #1a4d8c;
+}
+.prm-role-preview-perms { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; width: 100%; }
+
+.prm-perm-chip {
+  padding: 2px 8px; border-radius: 4px;
+  background: #1a4d8c18; color: #1a4d8c;
+  font-size: 11px; font-weight: 500;
+}
+.prm-perm-chip--more {
+  background: var(--instat-gray-200); color: var(--instat-gray-500);
+}
+
+/* Liste utilisateurs */
+.prm-users-list { padding: 8px 0; }
+
+.prm-user-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--instat-gray-100);
+  transition: background 0.1s;
+}
+.prm-user-row:last-child { border-bottom: none; }
+.prm-user-row:hover { background: var(--instat-gray-50); }
+.prm-user-row--me { background: #f0f4ff; }
+.prm-user-row--me:hover { background: #e8eeff; }
+
+.prm-user-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--instat-dark); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; flex-shrink: 0;
+}
+
+.prm-user-info  { flex: 1; }
+.prm-user-name  {
+  font-size: 13px; font-weight: 600; color: var(--instat-dark);
+  display: flex; align-items: center; gap: 6px;
+}
+.prm-user-email { font-size: 12px; color: var(--instat-gray-400); margin-top: 2px; }
+
+.prm-user-me-badge {
+  font-size: 10px; font-weight: 700;
+  background: #1a4d8c18; color: #1a4d8c;
+  padding: 2px 8px; border-radius: 20px;
+}
+
+.prm-user-actions { display: flex; gap: 6px; }
+
+.prm-icon-btn {
+  width: 30px; height: 30px; border-radius: 6px; border: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.prm-icon-btn--edit   { background: #2980b910; color: #2980b9; border: 1px solid #2980b920; }
+.prm-icon-btn--edit:hover   { background: #2980b925; }
+.prm-icon-btn--delete { background: #c0392b10; color: #c0392b; border: 1px solid #c0392b20; }
+.prm-icon-btn--delete:hover { background: #c0392b25; }
+
+/* Badge rôle */
+.prm-role-badge {
+  display: inline-block;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  background: var(--instat-gray-100);
+  color: var(--instat-dark);
+}
+
+/* ── RÔLES ── */
+
+.prm-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.prm-role-card {
+  background: #fff;
+  border: 1px solid var(--instat-gray-200);
+  border-top: 3px solid var(--instat-gray-300);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.prm-role-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+.prm-role-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; cursor: pointer;
+  -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+  user-select: none;
+}
+.prm-role-card-left  { display: flex; align-items: center; gap: 10px; }
+.prm-role-card-right { display: flex; align-items: center; gap: 8px; color: var(--instat-gray-400); }
+
+.prm-role-users {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--instat-gray-400);
+}
+.prm-role-perm-count { font-size: 12px; color: var(--instat-gray-400); }
+
+/* Permissions détaillées */
+.prm-role-perms {
+  border-top: 1px solid var(--instat-gray-100);
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--instat-gray-50);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.prm-role-module {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.prm-role-module-name {
+  font-size: 12px; font-weight: 700; color: var(--instat-dark);
+  min-width: 140px;
+}
+.prm-role-module-actions {
+  display: flex; gap: 5px; flex-wrap: wrap;
+}
+
+.prm-action-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+}
+.prm-action-chip.has { background: #27ae6015; color: #27ae60; }
+.prm-action-chip.no  { background: var(--instat-gray-100); color: var(--instat-gray-400); }
+
+/* Loading / vide */
+.prm-loading {
+  padding: 30px; text-align: center;
+  color: var(--instat-gray-400); font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.prm-empty {
+  padding: 30px; text-align: center;
+  color: var(--instat-gray-400); font-size: 13px;
+}
+.prm-empty code {
+  background: var(--instat-gray-100); padding: 2px 8px; border-radius: 4px;
+  font-size: 12px; color: var(--instat-dark);
+}
+
+/* Spin */
+.prm-spin { animation: prm-spin 0.8s linear infinite; }
+@keyframes prm-spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .prm-grid-2       { grid-template-columns: 1fr; }
+  .prm-roles-grid   { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .prm-page         { padding: 16px; }
+  .prm-grid-2-inner { grid-template-columns: 1fr; }
+  .prm-user-form-grid { grid-template-columns: 1fr; }
+  .prm-tabs         { flex-direction: column; width: 100%; }
+}

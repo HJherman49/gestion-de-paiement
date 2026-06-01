@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreBanqueRequest extends FormRequest
 {
@@ -22,11 +23,23 @@ class StoreBanqueRequest extends FormRequest
      */
     public function rules(): array
     {
+        $banque = $this->route('banque');
+
+        $nomBanqueRule = Rule::unique('banques', 'Nom_banque');
+        $codeBanqueRule = Rule::unique('banques', 'code_banque');
+
+        if ($banque) {
+            $nomBanqueRule = $nomBanqueRule->ignore($banque->Id_banque, 'Id_banque');
+            $codeBanqueRule = $codeBanqueRule->ignore($banque->Id_banque, 'Id_banque');
+        }
+
         return [
-            'Nom_banque'        => 'required|string|max:150|unique:banques,Nom_banque',
+            'Nom_banque'        => ['required', 'string', 'max:150', $nomBanqueRule],
             'agence'            => 'required|string|max:100',
-            'code_banque'       => 'required|string|max:10|unique:banques,code_banque',
+            'code_banque'       => ['required', 'string', 'max:10', $codeBanqueRule],
             'code_localite_bnq' => 'required|string|max:10',
         ];
     }
 }
+
+ 

@@ -1,7 +1,7 @@
 import api from './api'
 
 export interface PreembaucheFromAPI {
-  Id_preembauche:          number
+  Id_preemb:          number
   N_contrat:               string
   Date_recrutement:        string
   Date_recrutement1:       string

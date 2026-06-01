@@ -12,7 +12,7 @@ class StoreDiplomeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return auth()->check();
     }
 
     /**
@@ -23,8 +23,8 @@ class StoreDiplomeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'spécialité' => 'required|string|max:150',
-            'libelle'    => 'required|string|max:200',
+            'specialite' => 'nullable|string|max:150',
+            'libelle'    =>  'required|string|max:200',
         ];
     }
 }

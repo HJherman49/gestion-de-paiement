@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreBaremeRequest extends FormRequest
 {
@@ -22,8 +23,16 @@ class StoreBaremeRequest extends FormRequest
      */
     public function rules(): array
     {
+        $bareme = $this->route('bareme');
+
+        $indiceRule = Rule::unique('baremes', 'Indice');
+
+        if ($bareme) {
+            $indiceRule = $indiceRule->ignore($bareme->Id_bareme, 'Id_bareme');
+        }
+
         return [
-            'Indice'          => 'required|integer|min:1|unique:baremes,Indice',
+            'Indice'          => ['required', 'integer', 'min:1', $indiceRule],
             'salaire_base'    => 'required|numeric|min:0',
             'salaire_mensuel' => 'required|numeric|min:0',
             'anciennete'      => 'nullable|integer|min:0',

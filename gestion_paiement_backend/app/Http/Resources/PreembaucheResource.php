@@ -11,27 +11,31 @@ class PreembaucheResource extends JsonResource
     {
         return [
             'Id_preemb'               => $this->Id_preemb,
+            'Id_agent'                => $this->Id_agent,
+            'Id_contrat'               => $this->Id_contrat,
             'N_contrat'               => $this->N_contrat,
             'Date_recrutement'        => $this->Date_recrutement?->format('Y-m-d'),
             'Date_recrutement1'       => $this->Date_recrutement1?->format('Y-m-d'),
             
-            'periode_stage' => [
-                'debut' => $this->Deb_stage_PreEmb?->format('Y-m-d'),
-                'fin'   => $this->Fin_stage_PreEmb?->format('Y-m-d'),
-                'texte_debut' => $this->Deb_stage_PreEmb_txt,
-                'texte_fin'   => $this->Fin_stage_PreEmb_txt,
-            ],
+            
+            'Deb_stage_PreEmb' => $this->Deb_stage_PreEmb?->format('Y-m-d'),
+            'Fin_stage_PreEmb'   => $this->Fin_stage_PreEmb?->format('Y-m-d'),
+            'Deb_stage_PreEmb_txt' => $this->Deb_stage_PreEmb_txt,
+            'Fin_stage_PreEmb_txt'   => $this->Fin_stage_PreEmb_txt,
+            
 
-            'montants' => [
-                'preembauche' => number_format($this->Montant_PreEmb ?? 0, 2),
-                'contrat'     => number_format($this->Montant_PreEmb_Contrat ?? 0, 2),
-            ],
+            
+            'Montant_PreEmb' => number_format($this->Montant_PreEmb ?? 0, 2),
+            'Montant_PreEmb_Contrat'     => number_format($this->Montant_PreEmb_Contrat ?? 0, 2),
+            
 
             // Relations
-            'agent' => $this->whenLoaded('agent', fn() => [
-                'Id_agents'     => $this->agent->Id_agents,
-                'nom_complet'   => $this->agent->nom . ' ' . $this->agent->prenoms,
-                'num_matricule' => $this->agent->num_matricule,
+            'agent'            => $this->whenLoaded('agent', fn() => [
+                'Id_agent'     => $this->agent->Id_agent,
+                'nom'          => $this->agent->nom,
+                'prenoms'      => $this->agent->prenoms,
+                'civilite'     => $this->agent->civilite,
+                'num_matricule'=> $this->agent->num_matricule,
             ]),
 
             'contrat' => $this->whenLoaded('contrat', fn() => [

@@ -21,6 +21,7 @@ use App\Http\Controllers\RegionController;
 use App\Http\Controllers\DiplomeController;
 use App\Http\Controllers\ConcoursController;
 use App\Http\Controllers\HistoriqueController;
+use App\Http\Controllers\UserController;
 
 // ------------------------------------------------
 // ROUTES PUBLIQUES — pas besoin de token
@@ -33,12 +34,40 @@ Route::prefix('v1')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])
          ->middleware('auth:sanctum');
 
+    Route::middleware('auth:sanctum')->group(function () {
+        // ── Profil de l'utilisateur connecté ──────────────────────────────────
+        Route::get('/utilisateurs/me',         [UserController::class, 'me']);
+        Route::post('/utilisateurs/me/profil', [UserController::class, 'updateProfil']);
+
+        // ── Gestion utilisateurs (droits utilisateurs) -------------------------
+        Route::middleware('can:utilisateurs.voir')->group(function () {
+            Route::get('/utilisateurs', [UserController::class, 'index']);
+        });
+
+        // ── Rôles et permissions (droits paramètres) ---------------------------
+        Route::middleware('can:parametres.voir')->group(function () {
+            Route::get('/roles',       [UserController::class, 'roles']);
+            Route::get('/permissions', [UserController::class, 'permissions']);
+        });
+    });
+
+    Route::middleware('can:utilisateurs.creer')->group(function () {
+        Route::post('/utilisateurs',                 [UserController::class, 'store']);
+    });
+
+    Route::middleware('can:utilisateurs.modifier')->group(function () {
+        Route::put('/utilisateurs/{user}',           [UserController::class, 'update']);
+    });
+
+    Route::middleware('can:utilisateurs.supprimer')->group(function () {
+        Route::delete('/utilisateurs/{user}',        [UserController::class, 'destroy']);
+    });
+
     // ------------------------------------------------
     // ROUTES PROTÉGÉES — token obligatoire
     // ------------------------------------------------
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
-
         
         Route::apiResource('directions',  DirectionController::class);
         Route::apiResource('services',    ServiceController::class);
@@ -74,10 +103,13 @@ Route::prefix('v1')->group(function () {
             Route::get('reclassements',    [ReclassementController::class,  'parAgent']);
             Route::get('compte-bancaire',  [CompteBancaireController::class,'parAgent']);
             //Route::get('concours',         [ConcoursController::class,      'parAgent']);
-            Route::get('diplomes',         [DiplomeController::class,       'parAgent']);
-            
+            Route::get('diplomes',            [DiplomeController::class, 'parAgent']);
+            Route::post('diplomes/sync',      [DiplomeController::class, 'syncAgent']);
+            Route::delete('diplomes/{diplome}',[DiplomeController::class, 'detachAgent']);
+                        
         });
-
+        
+        Route::get('/paies/{id}/pdf', [PaieController::class, 'exportBulletin']);
     
 
         // ---- Actions spéciales ----
