@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { X, Save, User, FileText, Briefcase, GraduationCap, Baby, Plus, Trash2 } from 'lucide-react'
 import type { Agent, AgentFormData, Direction, Service, Division, Statut, Contrat } from '../types/agent'
 import { getDirections, getServices, getDivisions, getStatuts, getContrats } from '../services/agentService'
@@ -63,6 +63,7 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
   const [step, setStep] = useState<FormStep>('identite')
   const [directions, setDirections] = useState<Direction[]>([])
   const [services, setServices] = useState<Service[]>([])
+  const bodyRef = useRef<HTMLDivElement | null>(null)
   const [divisions, setDivisions] = useState<Division[]>([])
   const [statuts, setStatuts] = useState<Statut[]>([])
   const [contrats, setContrats] = useState<Contrat[]>([])
@@ -293,34 +294,19 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
     }
   }
 
+  useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = 0
+    }
+  }, [step])
+
   const currentStepIndex = STEPS.findIndex(s => s.key === step)
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.45)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000,
-      backdropFilter: 'blur(2px)',
-    }}>
-      <div style={{
-        background: '#fff',
-        borderRadius: '16px',
-        width: '680px',
-        maxHeight: '90vh',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
-        overflow: 'hidden',
-      }}>
+    <div className="agent-form-overlay">
+      <div className="agent-form-container">
         {/* Header */}
-        <div style={{
-          background: 'var(--instat-dark)',
-          padding: '20px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+        <div className="agent-form-header">
           <div>
             <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', marginBottom: '2px' }}>
               {agent ? 'Modifier l\'agent' : 'Nouvel agent'}
@@ -379,7 +365,7 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
         </div>
 
         {/* Form body */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '24px' }}>
+        <div ref={bodyRef} className="agent-form-body">
 
           {/* ÉTAPE 1 : IDENTITÉ */}
           {step === 'identite' && (

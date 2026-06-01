@@ -499,7 +499,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }}>
       <div style={{
         background: '#fff', borderRadius: '16px',
-        width: '820px', maxHeight: '88vh',
+        width: 'min(820px, calc(100vw - 48px))', maxWidth: '820px', height: '88vh',
         display: 'flex', flexDirection: 'column',
         boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
         overflow: 'hidden',

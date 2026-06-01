@@ -9,6 +9,7 @@
 .pp-page {
   padding: 28px 32px;
   max-width: 1400px;
+  min-height: calc(100vh - 0px);
   margin: 0 auto;
   font-family: 'DM Sans', sans-serif;
 }
@@ -220,7 +221,7 @@
 }
 .pp-modal {
   background: #fff; border-radius: 16px;
-  width: 620px; max-height: 88vh;
+  width: 620px; height: 88vh; max-height: 88vh;
   display: flex; flex-direction: column;
   box-shadow: 0 24px 60px rgba(0,0,0,0.18);
   overflow: hidden;
@@ -271,7 +272,7 @@
 
 .pf-modal {
   background: #fff; border-radius: 16px;
-  width: 700px; max-height: 90vh;
+  width: 700px; height: 90vh; max-height: 90vh;
   display: flex; flex-direction: column;
   box-shadow: 0 24px 64px rgba(0,0,0,0.2);
   overflow: hidden;
