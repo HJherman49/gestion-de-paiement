@@ -103,8 +103,10 @@ Route::prefix('v1')->group(function () {
             Route::get('reclassements',    [ReclassementController::class,  'parAgent']);
             Route::get('compte-bancaire',  [CompteBancaireController::class,'parAgent']);
             //Route::get('concours',         [ConcoursController::class,      'parAgent']);
-            Route::get('diplomes',         [DiplomeController::class,       'parAgent']);
-            
+            Route::get('diplomes',            [DiplomeController::class, 'parAgent']);
+            Route::post('diplomes/sync',      [DiplomeController::class, 'syncAgent']);
+            Route::delete('diplomes/{diplome}',[DiplomeController::class, 'detachAgent']);
+                        
         });
         
         Route::get('/paies/{id}/pdf', [PaieController::class, 'exportBulletin']);

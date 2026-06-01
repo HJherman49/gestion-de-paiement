@@ -21,7 +21,13 @@ const STEPS: { key: FormStep; label: string; icon: React.ReactNode }[] = [
   { key: 'enfants', label: 'Enfants', icon: <Baby size={15} /> },
 ]
 
-const DIPLOMES_OPTIONS = ['Aucun', 'BEPC', 'Baccalauréat', 'Licence', 'Master', 'Doctorat', 'Autre']
+//const DIPLOMES_OPTIONS = ['Aucun', 'BEPC', 'Baccalauréat', 'Licence', 'Master', 'Doctorat', 'Autre']
+
+interface DiplomeAPI {
+  Id_diplome: number
+  libelle:    string
+  specialite?: string
+}
 
 interface Enfant {
   date_naissance: string
@@ -80,9 +86,9 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
     civilite: 'Mr',
     tel: '',
     mail: '',
-    porte: '',
     categ_retraite: '',
     N_Cnaps: '',
+    porte: '',
     pp_gale: 0,
     date_retraite: '',
     Id_direction: 0,
@@ -92,9 +98,11 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
     Id_contrat: 0,
   })
 
-  // États Diplômes
-  const [selectedDiplomes, setSelectedDiplomes] = useState<string[]>([])
-  const [specialiteDiplome, setSpecialiteDiplome] = useState('')
+   // États Diplômes (API)
+  const [diplomesAPI, setDiplomesAPI]         = useState<DiplomeAPI[]>([])
+  const [selectedDiplomeIds, setSelectedDiplomeIds] = useState<number[]>([])
+  const [loadingDiplomes, setLoadingDiplomes] = useState(false)
+
 
   // États Enfants
   const [enfants, setEnfants] = useState<Enfant[]>([])
@@ -104,12 +112,35 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
   const updateEnfant = (i: number, val: string) =>
     setEnfants(prev => prev.map((e, idx) => idx === i ? { ...e, date_naissance: val } : e))
 
-  const toggleDiplome = (d: string) =>
-    setSelectedDiplomes(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
+  const toggleDiplome = (id: number) =>
+    setSelectedDiplomeIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
 
   // ✅ CORRIGÉ : Listes filtrées en cascade basées directement sur form
   const filteredServices = services.filter(s => String(s.Id_direction) === String(form.Id_direction))
   const filteredDivisions = divisions.filter(d => String(d.Id_service) === String(form.Id_service))
+
+    // Charger les diplômes disponibles depuis l'API
+  useEffect(() => {
+    setLoadingDiplomes(true)
+    api.get('/diplomes')
+      .then(r => setDiplomesAPI(r.data.data ?? r.data ?? []))
+      .catch(() => {})
+      .finally(() => setLoadingDiplomes(false))
+  }, [])
+ 
+  // Charger les diplômes existants de l'agent en édition
+  useEffect(() => {
+    if (agent?.Id_agent) {
+      api.get(`/agents/${agent.Id_agent}/diplomes`)
+        .then(r => {
+          const ids = (r.data.data ?? []).map((d: any) => d.Id_diplome)
+          setSelectedDiplomeIds(ids)
+        })
+        .catch(() => {})
+    }
+  }, [agent])
 
   useEffect(() => {
     const fetchReferenceData = async () => {
@@ -149,9 +180,9 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
         civilite: agent.civilite ?? 'Mr',
         tel: agent.tel ?? '',
         mail: agent.mail ?? '',
-        porte: agent.porte ?? '',
         categ_retraite: agent.categ_retraite ?? null,
         N_Cnaps: agent.N_Cnaps ?? null,
+        porte: agent.porte ?? null,
         pp_gale: agent.pp_gale ?? 0,
         date_retraite: agent.date_retraite ?? null,
         Id_direction: agent.Id_direction ?? agent.direction?.Id_direction ?? 0,
@@ -175,9 +206,9 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
         civilite: 'Mr',
         tel: '',
         mail: '',
-        porte: '',
         categ_retraite: '',
         N_Cnaps: '',
+        porte: '',
         pp_gale: 0,
         date_retraite: '',
         Id_direction: 0,
@@ -242,6 +273,18 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
           })
         )
     )
+  }
+
+    // ── Enregistrer les diplômes via sync (many-to-many) ────────────────────
+  const sauvegarderDiplomes = async (Id_agent: number) => {
+    if (selectedDiplomeIds.length === 0) return
+    try {
+      await api.post(`/agents/${Id_agent}/diplomes/sync`, {
+        diplomes: selectedDiplomeIds,
+      })
+    } catch (err) {
+      console.warn('Impossible de synchroniser les diplômes:', err)
+    }
   }
 
   const handleSubmit = async () => {
@@ -603,19 +646,41 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
             </div>
           )}
 
-          {/* ÉTAPE 4 : DIPLÔMES */}
+           {/* ÉTAPE 4 : DIPLÔMES — connecté à l'API */}
           {step === 'diplome' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={labelStyle}>Niveau de diplôme obtenu</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '8px' }}>
-                  {DIPLOMES_OPTIONS.map(d => {
-                    const selected = selectedDiplomes.includes(d)
+ 
+              {/* En-tête */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={labelStyle}>Sélectionner les diplômes obtenus</label>
+                {selectedDiplomeIds.length > 0 && (
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--instat-dark)', background: 'var(--instat-gray-100)', padding: '3px 10px', borderRadius: '20px' }}>
+                    {selectedDiplomeIds.length} sélectionné{selectedDiplomeIds.length > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+ 
+              {/* Liste des diplômes depuis l'API */}
+              {loadingDiplomes ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--instat-gray-400)', fontSize: '13px' }}>
+                  Chargement des diplômes...
+                </div>
+              ) : diplomesAPI.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--instat-gray-400)', fontSize: '13px', background: 'var(--instat-gray-50)', borderRadius: '8px', border: '1px dashed var(--instat-gray-200)' }}>
+                  Aucun diplôme disponible.{' '}
+                  <span style={{ color: 'var(--instat-dark)', fontWeight: 600 }}>
+                    Ajoutez des diplômes dans l'administration.
+                  </span>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  {diplomesAPI.map(d => {
+                    const selected = selectedDiplomeIds.includes(d.Id_diplome)
                     return (
                       <button
-                        key={d}
+                        key={d.Id_diplome}
                         type="button"
-                        onClick={() => toggleDiplome(d)}
+                        onClick={() => toggleDiplome(d.Id_diplome)}
                         style={{
                           padding: '10px 14px',
                           borderRadius: '8px',
@@ -627,42 +692,58 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
                           cursor: 'pointer',
                           fontFamily: 'DM Sans, sans-serif',
                           display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: '4px',
                           transition: 'all 0.15s',
+                          textAlign: 'left',
                         }}
                       >
-                        <GraduationCap size={14} />
-                        {d}
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <GraduationCap size={13} />
+                          {d.libelle}
+                        </span>
+                        {d['specialite'] && (
+                          <span style={{ fontSize: '11px', opacity: 0.7 }}>
+                            {d['specialite']}
+                          </span>
+                        )}
                       </button>
                     )
                   })}
                 </div>
-              </div>
-              <div>
-                <label style={labelStyle}>Spécialité / Filière</label>
-                <input
-                  style={inputStyle}
-                  value={specialiteDiplome}
-                  onChange={e => setSpecialiteDiplome(e.target.value)}
-                  placeholder="Ex: Informatique, Statistique, Gestion..."
-                />
-              </div>
-              {selectedDiplomes.length > 0 && (
+              )}
+ 
+              {/* Récap sélection */}
+              {selectedDiplomeIds.length > 0 && (
                 <div style={{ background: 'var(--instat-gray-50)', borderRadius: '8px', padding: '14px', border: '1px solid var(--instat-gray-200)' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--instat-gray-600)', marginBottom: '8px' }}>DIPLÔMES SÉLECTIONNÉS</p>
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--instat-gray-600)', marginBottom: '8px' }}>
+                    DIPLÔMES SÉLECTIONNÉS
+                  </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {selectedDiplomes.map(d => (
-                      <span key={d} style={{ padding: '4px 12px', borderRadius: '20px', background: 'var(--instat-dark)', color: '#fff', fontSize: '12px', fontWeight: 600 }}>
-                        🎓 {d}
-                      </span>
-                    ))}
+                    {selectedDiplomeIds.map(id => {
+                      const d = diplomesAPI.find(x => x.Id_diplome === id)
+                      return d ? (
+                        <span key={id} style={{
+                            padding: '4px 12px', borderRadius: '20px',
+                            background: 'var(--instat-dark)', color: '#fff',
+                            fontSize: '12px', fontWeight: 600,
+                            display: 'flex', alignItems: 'center', gap: '5px',
+                          }}>
+                            🎓 {d.libelle}
+                            <button
+                              type="button"
+                              onClick={() => toggleDiplome(id)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, fontSize: '14px', lineHeight: 1 }}
+                            >×</button>
+                        </span>
+                      ) : null
+                    })}
                   </div>
                 </div>
               )}
             </div>
           )}
-
           {/* ÉTAPE 5 : ENFANTS */}
           {step === 'enfants' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

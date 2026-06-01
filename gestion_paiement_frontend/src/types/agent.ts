@@ -58,9 +58,9 @@ export interface Agent {
   civilite?: Civilite
   tel?: string
   mail?: string
-  porte?: string
   categ_retraite?: string | null
   N_Cnaps?: string | null
+  porte?: string | null
   pp_gale?: number
   date_retraite?: string | null
   // FK

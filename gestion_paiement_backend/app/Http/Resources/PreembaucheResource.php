@@ -30,10 +30,12 @@ class PreembaucheResource extends JsonResource
             
 
             // Relations
-            'agent' => $this->whenLoaded('agent', fn() => [
-                'Id_agents'     => $this->agent->Id_agents,
-                'nom_complet'   => $this->agent->nom . ' ' . $this->agent->prenoms,
-                'num_matricule' => $this->agent->num_matricule,
+            'agent'            => $this->whenLoaded('agent', fn() => [
+                'Id_agent'     => $this->agent->Id_agent,
+                'nom'          => $this->agent->nom,
+                'prenoms'      => $this->agent->prenoms,
+                'civilite'     => $this->agent->civilite,
+                'num_matricule'=> $this->agent->num_matricule,
             ]),
 
             'contrat' => $this->whenLoaded('contrat', fn() => [

@@ -69,7 +69,7 @@ export const PreembauchePage: React.FC = () => {
 
   const handleSave = async (data: PreembauchePayload) => {
     try {
-      if (editItem) { await updatePreembauche(editItem.Id_preembauche, data); alert('Préembauche modifiée') }
+      if (editItem) { await updatePreembauche(editItem.Id_preemb, data); alert('Préembauche modifiée') }
       else          { await createPreembauche(data); alert('Préembauche créée') }
       load(); setShowForm(false); setEditItem(null)
     } catch (err: any) {
@@ -92,7 +92,7 @@ export const PreembauchePage: React.FC = () => {
     <div className="pep-actions">
       <button className="pep-icon-btn" title="Voir" onClick={() => setViewItem(item)}><Eye size={13} /></button>
       <button className="pep-icon-btn pep-icon-btn--edit" title="Modifier" onClick={() => openEdit(item)}><Pencil size={13} /></button>
-      <button className="pep-icon-btn pep-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(item.Id_preembauche)}><Trash2 size={13} /></button>
+      <button className="pep-icon-btn pep-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(item.Id_preemb)}><Trash2 size={13} /></button>
     </div>
   )
 
@@ -169,7 +169,7 @@ export const PreembauchePage: React.FC = () => {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={6} className="pep-empty">Aucun dossier trouvé</td></tr>
               ) : filtered.map((p, i) => (
-                <tr key={`${p.Id_preembauche ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
+                <tr key={`${p.Id_preemb ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
                   <td>
                     {p.agent ? (
                       <>
@@ -216,7 +216,7 @@ export const PreembauchePage: React.FC = () => {
               ) : filtered.map((p, i) => {
                 const days = dureeDays(p.Deb_stage_PreEmb, p.Fin_stage_PreEmb)
                 return (
-                  <tr key={`${p.Id_preembauche ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
+                  <tr key={`${p.Id_preemb ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
                     <td>
                       {p.agent ? (
                         <>
@@ -264,7 +264,7 @@ export const PreembauchePage: React.FC = () => {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="pep-empty">Aucun contrat trouvé</td></tr>
               ) : filtered.map((p, i) => (
-                <tr key={`${p.Id_preembauche ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
+                <tr key={`${p.Id_preemb ?? 'preembauche'}-${i}`} className={`pep-row ${i % 2 === 0 ? 'pep-row-even' : 'pep-row-odd'}`}>
                   <td>
                     {p.agent ? (
                       <>
@@ -304,7 +304,7 @@ export const PreembauchePage: React.FC = () => {
                 <div className="pep-modal-icon"><UserCheck size={20} /></div>
                 <div>
                   <div className="pep-modal-title">
-                    Dossier #{viewItem.Id_preembauche}
+                    Dossier #{viewItem.Id_preemb}
                     {viewItem.N_contrat && ` — ${viewItem.N_contrat}`}
                   </div>
                   <div className="pep-modal-sub">

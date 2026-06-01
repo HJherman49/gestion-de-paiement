@@ -38,6 +38,8 @@ class StorePaieRequest extends FormRequest
             'rappel'            => 'nullable|numeric|min:0',
             'PA'                => 'nullable|numeric|min:0',
             'mode_paie'         => 'required|in:Virement,Cheque,Espèces',
+            'chap'              => 'nullable|string|max:255',
+            'art'               => 'nullable|string|max:255',
             'date_effet'        => 'required|date',
             'Id_agent'         => 'required|exists:agents,Id_agent',
             'Id_enfant'         => 'nullable|exists:enfants,Id_enfant',

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePreembaucheRequest extends FormRequest
 {
@@ -22,9 +23,22 @@ class StorePreembaucheRequest extends FormRequest
      */
     public function rules(): array
     {
+        $preembaucheId = null;
+
+            // Plusieurs façons de récupérer l'ID (très sécurisé)
+            if ($this->route('preembauche')) {
+                $preembaucheId = $this->route('preembauche')->Id_preemb ?? $this->route('preembauche');
+            } elseif ($this->id) {
+                $preembaucheId = $this->id;
+            }
         return [
-            
-            'N_contrat'               => 'required|string|unique:preembauches,N_contrat|max:50',
+            'N_contrat' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('preembauches', 'N_contrat')
+                    ->ignore($preembaucheId, 'Id_preemb')
+            ],        
             'Date_recrutement'        => 'required|date',
             'Date_recrutement1'       => 'nullable|date|after_or_equal:Date_recrutement',
             'Deb_stage_PreEmb'        => 'required|date',
@@ -37,6 +51,13 @@ class StorePreembaucheRequest extends FormRequest
             // Clés étrangères
             'Id_agent'                => 'required|exists:agents,Id_agent',
             'Id_contrat'              => 'required|exists:contrats,Id_contrat',
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'N_contrat' => 'numéro de contrat',
         ];
     }
 }

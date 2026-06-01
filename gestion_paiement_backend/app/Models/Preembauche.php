@@ -10,7 +10,8 @@ class Preembauche extends Model
 {
     /** @use HasFactory<\Database\Factories\PreembaucheFactory> */
     use HasFactory, SoftDeletes;
-    protected $primaryKey = 'Id_preembauche';
+    // Database primary key is `Id_preemb`
+    protected $primaryKey = 'Id_preemb';
     protected $fillable = [
         'N_contrat', 
         'Date_recrutement', 

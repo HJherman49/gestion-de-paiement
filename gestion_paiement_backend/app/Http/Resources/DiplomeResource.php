@@ -16,7 +16,7 @@ class DiplomeResource extends JsonResource
     {
         return [
             'Id_diplome'  => $this->Id_diplome,
-            'spécialité'  => $this->spécialité,
+            'specialite'  => $this->specialite,
             'libelle'     => $this->libelle,
         ];
     }

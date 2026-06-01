@@ -46,7 +46,7 @@ class PaieResource extends JsonResource
             'art'            => $this->art,
             'mode_paie'      => $this->mode_paie,
             'date_effet'     => $this->date_effet?->format('Y-m-d'),
-            'Id_agent'       => $this->Id_agent,
+            'Id_agent'       => $this->id_agent ?? $this->Id_agent,
             'Id_enfant'      => $this->Id_enfant,
 
             'agent' => $this->whenLoaded('agent', fn() => [
@@ -63,7 +63,9 @@ class PaieResource extends JsonResource
                 ] : null,
             ]),
 
-            'enfant'     => $this->whenLoaded('enfant'),
+            'enfant'     => $this->whenLoaded('enfant', fn() => [
+                'Id_enfant'    => $this->enfant->Id_enfant
+            ]),
             'created_at' => $this->created_at?->format('Y-m-d H:i'),
         ];
     }

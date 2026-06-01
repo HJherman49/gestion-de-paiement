@@ -8,9 +8,33 @@ interface NavbarProps {
   onOpenAdmin: () => void
   user?: any
   onLogout?: () => void
+  userPermissions: string[]
 }
 
-const NAV_ITEMS: { id: string; label: string; children?: string[] }[] = [
+// Page Permissions mapping
+const PAGE_PERMISSIONS: Record<string, string[]> = {
+  dashboard:    [],
+  agents:       ['agents.voir'],
+  bareme:       ['baremes.voir'],
+  paie:         ['paies.voir'],
+  carriere:     ['carrieres.voir'],
+  reclassement: ['reclassements.voir'],
+  banque:       ['banques.voir', 'comptes_bancaires.voir'],
+  fonction:     ['fonctions.voir'],
+  preembauche:  ['preembauches.voir'],
+  historique:   ['historique.voir'],
+  parametres:   ['parametres.voir', 'utilisateurs.voir'],
+}
+
+// Helper function for permission check
+const canAccess = (page: string, permissions: string[]): boolean => {
+  const required = PAGE_PERMISSIONS[page]
+  if (!required || required.length === 0) return true
+  if (required.includes('parametres.voir')) return true
+  return required.some(p => permissions.includes(p))
+}
+
+const ALL_ITEMS: { id: string; label: string; children?: string[] }[] = [
   { id: 'dashboard', label: 'Tableau de bord' },
   { id: 'agents', label: 'Agents' },
   { id: 'bareme', label: 'Bareme' },
@@ -20,7 +44,6 @@ const NAV_ITEMS: { id: string; label: string; children?: string[] }[] = [
   { id: 'fonction', label: 'Fonction' },
   { id: 'preembauche', label: 'Préembauche' },
   { id: 'paie', label: 'Paiement' },
- // { id: 'about', label: 'Qui sommes-nous ?' },
 ]
 
 const QUICK_LINKS : {id: string; label: string; children?: string[]}[] = [
@@ -33,6 +56,12 @@ const QUICK_LINKS : {id: string; label: string; children?: string[]}[] = [
 export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAdmin, user, onLogout }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [searchValue, setSearchValue] = useState('')
+
+  // Filter menu items based on user permissions
+  const userPermissions = user?.permissions ?? []
+  const menuItems = ALL_ITEMS.filter(item =>
+    canAccess(item.id, userPermissions)
+  )
 
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100 }}>
@@ -139,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activePage, onNavigate, onOpenAd
 
         {/* Navigation items */}
         <div style={{ display: 'flex', alignItems: 'stretch', height: '60px', flex: 1 }}>
-          {NAV_ITEMS.map(item => (
+          {menuItems.map(item => (
             <div
               key={item.id}
               style={{ position: 'relative' }}

@@ -30,6 +30,7 @@ class Agent extends Model
         'date_delivrance_CI',
         'lieu_delivrance_CI',
         'N_Cnaps',
+        'porte',
         'pp_gale',
         'Id_direction',
         'Id_service',
@@ -149,7 +150,7 @@ class Agent extends Model
     {
         return $this->belongsToMany(
             Diplome::class,
-            'agent_diplomes',
+            'agent_diplome',
             'Id_agent',
             'Id_diplome'
         );
