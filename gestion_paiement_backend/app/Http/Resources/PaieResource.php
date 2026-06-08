@@ -42,9 +42,9 @@ class PaieResource extends JsonResource
             'PA'             => (float)($this->PA ?? 0),
 
             'salaire_net'    => (float)$salaire_net,
+            'mode_paie'      => $this->mode_paie,
             'chap'           => $this->chap,
             'art'            => $this->art,
-            'mode_paie'      => $this->mode_paie,
             'date_effet'     => $this->date_effet?->format('Y-m-d'),
             'Id_agent'       => $this->id_agent ?? $this->Id_agent,
             'Id_enfant'      => $this->Id_enfant,

@@ -50,7 +50,7 @@ class Historique extends Model
     }
 
     /**
-     * Enregistre toutes les différences entre deux tableaux (avant/après update).
+     * Enregistre toutes les differences entre deux tableaux (avant/après update).
      * Parfait pour un appel unique dans le contrôleur update().
      */
     public static function logChanges(

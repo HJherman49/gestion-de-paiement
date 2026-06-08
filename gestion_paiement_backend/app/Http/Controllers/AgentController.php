@@ -8,16 +8,14 @@ use Illuminate\Http\Request;
 
 class AgentController extends Controller
 {
-    // ------------------------------------------------
     // GET /api/agents
-    // ------------------------------------------------
     public function index(Request $request)
     {
         $query = Agent::with([
             'direction', 'service', 'division', 'statut', 'contrat'
         ]);
 
-        // Filtres optionnels pour React
+        // Filtres optionnels
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -37,7 +35,7 @@ class AgentController extends Controller
             $query->where('Id_statut', $request->Id_statut);
         }
 
-        // Pagination — React reçoit les agents par page
+        // Pagination
         $perPage = $request->get('per_page', 15);
         $agents = $query->paginate($perPage);
 
@@ -56,9 +54,8 @@ class AgentController extends Controller
         ]);
     }
 
-    // ------------------------------------------------
     // POST /api/agents
-    // ------------------------------------------------
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -80,21 +77,33 @@ class AgentController extends Controller
             'N_Cnaps'            => 'nullable|string|max:50',
             'porte'              => 'nullable|string|max:50',
             'pp_gale'            => 'nullable|numeric|min:0',
-            // Clés étrangères
+            // Cles etrangeres
             'Id_direction'       => 'required|exists:directions,Id_direction',
             'Id_service'         => 'required|exists:services,Id_service',
             'Id_division'        => 'required|exists:divisions,Id_division',
             'Id_statut'          => 'required|exists:statuts,Id_statut',
             'Id_contrat'         => 'required|exists:contrats,Id_contrat',
+            // Diplomes optionnels
+            'diplomes'           => 'nullable|array',
+            'diplomes.*'         => 'integer|exists:diplomes,Id_diplome',
         ]);
+
+        // Extraire les diplomes si presents
+        $diplomes = $data['diplomes'] ?? [];
+        unset($data['diplomes']);
 
         $agent = Agent::create($data);
 
-        // Enregistrer la création dans l'historique
+        // Attacher les diplomes si fournis
+        if (!empty($diplomes)) {
+            $agent->diplomes()->sync($diplomes);
+        }
+
+        // Enregistrer la creation dans l'historique
         Historique::log('agents', $agent->Id_agent, 'CREATE', null, null, null, auth()->user()?->name);
 
-        // Retourner l'agent créé avec ses relations
-        $agent->load(['direction', 'service', 'division', 'statut', 'contrat']);
+        // Retourner l'agent cree avec ses relations
+        $agent->load(['direction', 'service', 'division', 'statut', 'contrat', 'diplomes']);
 
         return response()->json([
             'success' => true,
@@ -103,9 +112,9 @@ class AgentController extends Controller
         ], 201);
     }
 
-    // ------------------------------------------------
+ 
     // GET /api/agents/{agent}
-    // ------------------------------------------------
+  
     public function show(Agent $agent)
     {
         $agent->load([
@@ -121,9 +130,9 @@ class AgentController extends Controller
         ], 200);
     }
 
-    // ------------------------------------------------
+  
     // PUT /api/agents/{agent}
-    // ------------------------------------------------
+
     public function update(Request $request, Agent $agent)
     {
         $data = $request->validate([
@@ -145,13 +154,20 @@ class AgentController extends Controller
             'N_Cnaps'            => 'nullable|string|max:50',
             'pp_gale'            => 'nullable|numeric|min:0',
             'porte'              => 'nullable|string|max:50',
-            // Clés étrangères
+            // Cles etrangeres
             'Id_direction'       => 'sometimes|exists:directions,Id_direction',
             'Id_service'         => 'sometimes|exists:services,Id_service',
             'Id_division'        => 'sometimes|exists:divisions,Id_division',
             'Id_statut'          => 'sometimes|exists:statuts,Id_statut',
             'Id_contrat'         => 'sometimes|exists:contrats,Id_contrat',
+            // Diplomes optionnels
+            'diplomes'           => 'nullable|array',
+            'diplomes.*'         => 'integer|exists:diplomes,Id_diplome',
         ]);
+
+        // Extraire les diplomes si presents
+        $diplomes = isset($data['diplomes']) ? $data['diplomes'] : null;
+        unset($data['diplomes']);
 
         foreach (['date_naissance', 'date_entree_admin', 'date_delivrance_CI', 'date_retraite'] as $dateField) {
             if (array_key_exists($dateField, $data) && $data[$dateField] === '') {
@@ -164,8 +180,13 @@ class AgentController extends Controller
         $agent->update($data);
         Historique::logChanges('agents', $agent->Id_agent, $before, $data, auth()->user()?->name);
 
+        // Mettre a jour les diplomes si fournis
+        if ($diplomes !== null) {
+            $agent->diplomes()->sync($diplomes);
+        }
+
         // Retourner l'agent mis à jour avec ses relations
-        $agent->load(['direction', 'service', 'division', 'statut', 'contrat']);
+        $agent->load(['direction', 'service', 'division', 'statut', 'contrat', 'diplomes']);
 
         return response()->json([
             'success' => true,
@@ -182,7 +203,7 @@ class AgentController extends Controller
         // Enregistrer la suppression dans l'historique
         Historique::log('agents', $agent->Id_agent, 'DELETE', null, null, null, auth()->user()?->name);
         
-        $agent->delete(); // SoftDelete — l'agent n'est pas effacé physiquement
+        $agent->delete(); 
 
         return response()->json([
             'success' => true,

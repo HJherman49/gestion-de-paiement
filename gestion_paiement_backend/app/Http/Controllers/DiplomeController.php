@@ -24,7 +24,7 @@ class DiplomeController extends Controller
     }
 
     // ── GET /api/v1/agents/{agent}/diplomes ───────────────────────────────
-    // Liste les diplômes d'un agent
+    // Liste les diplomes d'un agent
     public function parAgent(Agent $agent)
     {
         $diplomes = $agent->diplomes()->get();
@@ -39,16 +39,16 @@ class DiplomeController extends Controller
     }
 
     // ── POST /api/v1/agents/{agent}/diplomes ──────────────────────────────
-    // Synchroniser les diplômes d'un agent (remplace tous les anciens)
+    // Synchroniser les diplomes d'un agent (remplace tous les anciens)
     public function syncAgent(Request $request, Agent $agent)
     {
         $request->validate([
-            'diplomes'   => 'required|array',
+            'diplomes'   => 'nullable|array',
             'diplomes.*' => 'integer|exists:diplomes,Id_diplome',
         ]);
 
         // sync() supprime les anciens et ajoute les nouveaux
-        $agent->diplomes()->sync($request->diplomes);
+        $agent->diplomes()->sync($request->diplomes ?? []);
 
         return response()->json([
             'success' => true,
@@ -62,7 +62,7 @@ class DiplomeController extends Controller
     }
 
     // ── DELETE /api/v1/agents/{agent}/diplomes/{diplome} ──────────────────
-    // Détacher un diplôme spécifique d'un agent
+    // Detacher un diplôme specifique d'un agent
     public function detachAgent(Agent $agent, Diplome $diplome)
     {
         $agent->diplomes()->detach($diplome->Id_diplome);

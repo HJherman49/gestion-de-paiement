@@ -57,7 +57,7 @@ class AgentResource extends JsonResource
                 'type_contrat' => $this->contrat->type_contrat,
             ]),
 
-            // Relations plus détaillées (chargées avec with())
+            // Relations plus detaillees (chargees avec with())
             'enfants_count'      => $this->whenCounted('enfants'),
             'carrieres'          => CarriereResource::collection($this->whenLoaded('carrieres')),
             'comptes_bancaires'  => CompteBancaireResource::collection($this->whenLoaded('comptesBancaires')),

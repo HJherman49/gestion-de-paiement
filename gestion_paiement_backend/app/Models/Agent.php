@@ -48,9 +48,8 @@ class Agent extends Model
         'sexe'               => 'string',
     ];
 
-    // ------------------------------------------------
     // MUTATORS — Convert empty strings to NULL
-    // ------------------------------------------------
+
     public function setDateRetraiteAttribute(?string $value)
     {
         // Accept null or empty string from requests and store as NULL in DB
@@ -67,9 +66,9 @@ class Agent extends Model
         $this->attributes['N_Cnaps'] = ($value === null || $value === '') ? null : $value;
     }
 
-    // ------------------------------------------------
+
     // RELATIONS belongsTo
-    // ------------------------------------------------
+
     public function direction()
     {
         return $this->belongsTo(Direction::class, 'Id_direction', 'Id_direction');
@@ -95,9 +94,9 @@ class Agent extends Model
         return $this->belongsTo(Contrat::class, 'Id_contrat', 'Id_contrat');
     }
 
-    // ------------------------------------------------
+ 
     // RELATIONS hasMany — FK = Id_agent
-    // ------------------------------------------------
+  
     public function enfants()
     {
         return $this->hasMany(Enfant::class, 'Id_agent', 'Id_agent');
@@ -128,9 +127,9 @@ class Agent extends Model
         return $this->hasMany(Historique::class, 'Id_agent', 'Id_agent');
     }
 
-    // ------------------------------------------------
+ 
     // RELATION hasManyThrough
-    // ------------------------------------------------
+    
     public function reclassements()
     {
         return $this->hasManyThrough(
@@ -143,9 +142,9 @@ class Agent extends Model
         );
     }
 
-    // ------------------------------------------------
+    
     // RELATIONS belongsToMany (pivot)
-    // ------------------------------------------------
+    
     public function diplomes()
     {
         return $this->belongsToMany(
@@ -166,9 +165,9 @@ class Agent extends Model
         );
     }
 
-    // ------------------------------------------------
+    
     // CARRIERE ACTUELLE (helper)
-    // ------------------------------------------------
+    
     public function carriereActuelle()
     {
         return $this->hasOne(Carriere::class, 'Id_agent', 'Id_agent')

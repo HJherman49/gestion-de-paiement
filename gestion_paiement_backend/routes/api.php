@@ -22,6 +22,7 @@ use App\Http\Controllers\DiplomeController;
 use App\Http\Controllers\ConcoursController;
 use App\Http\Controllers\HistoriqueController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\NotificationController;
 
 // ------------------------------------------------
 // ROUTES PUBLIQUES — pas besoin de token
@@ -49,18 +50,18 @@ Route::prefix('v1')->group(function () {
             Route::get('/roles',       [UserController::class, 'roles']);
             Route::get('/permissions', [UserController::class, 'permissions']);
         });
-    });
 
-    Route::middleware('can:utilisateurs.creer')->group(function () {
-        Route::post('/utilisateurs',                 [UserController::class, 'store']);
-    });
+        Route::middleware(['auth:sanctum', 'can:utilisateurs.creer'])->group(function () {
+            Route::post('/utilisateurs', [UserController::class, 'store']);
+        });
 
-    Route::middleware('can:utilisateurs.modifier')->group(function () {
-        Route::put('/utilisateurs/{user}',           [UserController::class, 'update']);
-    });
+        Route::middleware(['auth:sanctum', 'can:utilisateurs.modifier'])->group(function () {
+            Route::put('/utilisateurs/{user}', [UserController::class, 'update']);
+        });
 
-    Route::middleware('can:utilisateurs.supprimer')->group(function () {
-        Route::delete('/utilisateurs/{user}',        [UserController::class, 'destroy']);
+        Route::middleware(['auth:sanctum', 'can:utilisateurs.supprimer'])->group(function () {
+            Route::delete('/utilisateurs/{user}', [UserController::class, 'destroy']);
+        });
     });
 
     // ------------------------------------------------
@@ -120,6 +121,8 @@ Route::prefix('v1')->group(function () {
         // ---- Historique (lecture seule) ----
         Route::get('historiques/stats', [HistoriqueController::class, 'stats']);
         Route::get('historiques', [HistoriqueController::class, 'index']);
+        // Notifications (générées depuis l'historique)
+        Route::get('notifications', [NotificationController::class, 'index']);
         Route::delete('historiques/{id}', [HistoriqueController::class, 'destroy']);
 
     });
