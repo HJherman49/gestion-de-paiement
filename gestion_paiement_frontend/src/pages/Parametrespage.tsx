@@ -14,7 +14,7 @@ import '../styles/pages/ParametresPage.css'
 
 type TabKey = 'profil' | 'utilisateurs' | 'roles'
 
-// ── Toggle switch ─────────────────────────────────────────────────────────────
+// ── Toggle switch 
 const Toggle: React.FC<{ checked: boolean; onChange: () => void }> = ({ checked, onChange }) => (
   <button className={`prm-toggle ${checked ? 'on' : ''}`} onClick={onChange} type="button" aria-label="Changer permission">
     <span className="prm-toggle-knob" />
@@ -33,7 +33,7 @@ export const ParametresPage: React.FC = () => {
   const canDeleteUsers = hasPermission('utilisateurs.supprimer')
   const canViewRoles   = hasPermission('parametres.voir')
 
-  // ── Profil ──────────────────────────────────────────────────────────────
+  // ── Profil 
   const [profil, setProfil]     = useState({ name: '', email: '', role: '' })
   const [pwdActuel, setPwdActuel]   = useState('')
   const [pwdNouv, setPwdNouv]       = useState('')
@@ -47,7 +47,7 @@ export const ParametresPage: React.FC = () => {
   })
   const togglePref = (k: keyof typeof prefs) => setPrefs(p => ({ ...p, [k]: !p[k] }))
 
-  // ── Utilisateurs ─────────────────────────────────────────────────────────
+  // ── Utilisateurs 
   const [users, setUsers]           = useState<UserFromAPI[]>([])
   const [roles, setRoles]           = useState<RoleFromAPI[]>([])
   const [loadingUsers, setLoadingUsers] = useState(false)
@@ -57,10 +57,10 @@ export const ParametresPage: React.FC = () => {
   const [savingUser, setSavingUser] = useState(false)
   const [userMsg, setUserMsg]       = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
-  // ── Rôles ─────────────────────────────────────────────────────────────────
+  // ── Rôles 
   const [expandedRole, setExpandedRole] = useState<string | null>(null)
 
-  // ── Chargement initial ────────────────────────────────────────────────────
+  // ── Chargement initial 
   useEffect(() => {
     getMe()
       .then(r => {
@@ -91,7 +91,7 @@ export const ParametresPage: React.FC = () => {
     finally { setLoadingUsers(false) }
   }
 
-  // ── Sauvegarder profil ────────────────────────────────────────────────────
+  // ── Sauvegarder profil 
   const handleSaveProfil = async () => {
     setSavingProfil(true); setProfilMsg(null)
     try {
@@ -111,7 +111,7 @@ export const ParametresPage: React.FC = () => {
     }
   }
 
-  // ── Sauvegarder utilisateur ───────────────────────────────────────────────
+  // ── Sauvegarder utilisateur
   const handleSaveUser = async () => {
     if (!userForm.name || !userForm.email || !userForm.role) {
       setUserMsg({ type: 'err', text: 'Nom, email et rôle sont obligatoires' })
@@ -159,7 +159,7 @@ export const ParametresPage: React.FC = () => {
 
   const isAdmin = myRole === 'Administrateur'
 
-  // ── Grouper permissions par module ────────────────────────────────────────
+  // ── Grouper permissions par module 
   const groupPermissions = (permissions: string[]) => {
     const grouped: Record<string, string[]> = {}
     permissions.forEach(p => {

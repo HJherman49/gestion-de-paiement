@@ -77,7 +77,7 @@ const normalizePaie = (paie: PaieFromAPI): PaiePayload => ({
   art:             safeString(paie.art),
   date_effet:      safeString(paie.date_effet),
   Id_agent:        safeNumber(paie.Id_agent),
-  Id_enfant:       paie.Id_enfant === undefined ? undefined : safeNumber(paie.Id_enfant),
+  Id_enfant:       paie.Id_enfant == null ? undefined : safeNumber(paie.Id_enfant),
 })
 
 // num 
@@ -120,14 +120,14 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
 
   const stepIndex = STEPS.findIndex(s => s.key === step)
 
-  // ── Charger agents pour le select ─────────────────────────────────────────
+  // ── Charger agents pour le select
   useEffect(() => {
     api.get('/agents', { params: { per_page: 200 } })
       .then(r => setAgents(r.data.data ?? r.data ?? []))
       .catch(() => {})
   }, [])
 
-  // ── Pré-remplir si édition ────────────────────────────────────────────────
+  // ── Pré-remplir si édition 
   useEffect(() => {
     if (paie) {
       setForm(normalizePaie(paie))
@@ -146,14 +146,14 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   const setNum = (key: keyof PaiePayload, value: string) =>
     set(key, value === '' ? 0 : parseFloat(value) || 0)
 
-  // ── Totaux calculés ───────────────────────────────────────────────────────
+  // ── Totaux calculés 
   const totalBrut = form.salaire_brut + form.prime + form.prime_speciale +
     form.prime_fin_annee + form.alloc + form.logement + form.scola +
     form.remboursement + form.rappel
   const totalDeductions = form.IGR + form.PA
   const netAPayer = totalBrut - totalDeductions
 
-  // ── Soumission ────────────────────────────────────────────────────────────
+  // ── Soumission 
   const handleSubmit = async () => {
     if (!form.Id_agent) { setError('Veuillez sélectionner un agent'); setStep('identification'); return }
     if (!form.mois || !form.annee) { setError('Mois et année sont obligatoires'); setStep('identification'); return }
@@ -170,7 +170,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
     }
   }
 
-  // ── Champ numérique réutilisable ──────────────────────────────────────────
+  // ── Champ numérique réutilisable 
 
 
   return (

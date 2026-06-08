@@ -13,7 +13,7 @@ interface NavbarProps {
   userPermissions: string[]
 }
 
-// ── Mapping page → permissions requises ───────────────────────────────────────
+// ── Mapping page → permissions requises 
 const PAGE_PERMISSIONS: Record<string, string[]> = {
   dashboard:    [],
   agents:       ['agents.voir'],
@@ -34,7 +34,7 @@ const canAccess = (page: string, permissions: string[]): boolean => {
   return required.some(p => permissions.includes(p))
 }
 
-// ── Items de navigation ───────────────────────────────────────────────────────
+// ── Items de navigation 
 const ALL_NAV_ITEMS = [
   { id: 'dashboard',    label: 'Tableau de bord' },
   { id: 'agents',       label: 'Agents' },
@@ -54,7 +54,7 @@ const ALL_QUICK_LINKS = [
   { id: 'contact',    label: 'Contact' },
 ]
 
-// ── Composant ─────────────────────────────────────────────────────────────────
+// ── Composant 
 
 export const Navbar: React.FC<NavbarProps> = ({
   activePage, onNavigate, onOpenAdmin, user, onLogout, userPermissions,
@@ -100,7 +100,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Zone droite */}
           <div className="navbar-right">
 
-            {/* Bouton Menu ☰ */}
             <button className="menu-btn" onClick={toggleMenu} title="Accès rapide">
               {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
@@ -156,7 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => { onOpenAdmin(); setIsMenuOpen(false) }}
                 className="menu-admin-btn"
               >
-                <Plus size={18} /> + Admin
+                <Plus size={18} /> Admin
               </button>
             )}
           </div>

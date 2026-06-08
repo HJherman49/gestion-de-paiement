@@ -32,7 +32,7 @@ const ar = (val: number) =>
 export const Dashboard: React.FC = () => {
   const [chartView, setChartView] = useState<ChartView>('effectifs')
 
-  // ── États ─────────────────────────────────────────────────────────────────
+  // ── États 
   const [stats, setStats] = useState({
     totalAgents:        0,
     totalCarrieres:     0,
@@ -48,7 +48,7 @@ export const Dashboard: React.FC = () => {
   const [error, setError]                           = useState<string | null>(null)
   const [lastUpdated, setLastUpdated]               = useState<Date | null>(null)
 
-  // ── Chargement ────────────────────────────────────────────────────────────
+  // ── Chargement 
   const loadAll = async () => {
     setLoading(true)
     setError(null)
@@ -71,7 +71,7 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => { loadAll() }, [])
 
-  // ── Config graphiques ─────────────────────────────────────────────────────
+  // ── Config graphiques
   const chartConfig: Record<ChartView, { dataKey: string; color: string; label: string; unit: string }> = {
     effectifs:    { dataKey: 'effectifs',    color: '#1a1f3c', label: 'Agents',       unit: '' },
     recrutements: { dataKey: 'recrutements', color: '#c0392b', label: 'Recrutements', unit: '' },
@@ -79,7 +79,7 @@ export const Dashboard: React.FC = () => {
   }
   const cfg = chartConfig[chartView]
 
-  // ── Stagiaires depuis la répartition ──────────────────────────────────────
+  // ── Stagiaires depuis la répartition 
   const nbStagiaires    = repartitionStatut.find(r => r.name === 'Stagiaire')?.value   ?? 0
   const nbFonctionnaires= repartitionStatut.find(r => r.name === 'Fonctionnaire')?.value ?? 0
   const nbContractuels  = repartitionStatut.find(r => r.name === 'Contractuel')?.value ?? 0

@@ -28,7 +28,7 @@ export const PaiePage: React.FC = () => {
   const [total, setTotal]         = useState(0)
   const [error, setError]         = useState<string | null>(null)
 
-  // ── Chargement ────────────────────────────────────────────────────────────
+  // ── Chargement 
   const loadPaies = async () => {
     setLoading(true)
     setError(null)
@@ -50,7 +50,7 @@ export const PaiePage: React.FC = () => {
 
   useEffect(() => { loadPaies() }, [page])
 
-  // ── Filtrage local ────────────────────────────────────────────────────────
+  // ── Filtrage local 
   const filtered = paies.filter(p => {
     const q = search.toLowerCase()
     return (
@@ -62,7 +62,7 @@ export const PaiePage: React.FC = () => {
     )
   })
 
-  // ── Sauvegarde ────────────────────────────────────────────────────────────
+  // ── Sauvegarde 
   const handleSave = async (data: PaiePayload) => {
     if (editPaie) {
       await updatePaie(editPaie.Id_paie, data)
@@ -76,7 +76,7 @@ export const PaiePage: React.FC = () => {
     setEditPaie(null)
   }
 
-  // ── Suppression ───────────────────────────────────────────────────────────
+  // ── Suppression 
   const handleDelete = async (id: number) => {
     if (!confirm('Supprimer ce bulletin de paie ?')) return
     try {

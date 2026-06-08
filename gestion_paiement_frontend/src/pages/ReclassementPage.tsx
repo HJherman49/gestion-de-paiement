@@ -40,7 +40,7 @@ export const ReclassementPage: React.FC = () => {
   const [total, setTotal]                   = useState(0)
   const [error, setError]                   = useState<string | null>(null)
 
-  // ── Chargement ────────────────────────────────────────────────────────────
+  // ── Chargement
   const load = async () => {
     setLoading(true)
     setError(null)
@@ -61,7 +61,7 @@ export const ReclassementPage: React.FC = () => {
 
   useEffect(() => { load() }, [page])
 
-  // ── Filtrage local ────────────────────────────────────────────────────────
+  // ── Filtrage local 
   const filtered = reclassements.filter(r => {
     const q = search.toLowerCase()
     const agent = r.carriere?.agent
@@ -74,7 +74,7 @@ export const ReclassementPage: React.FC = () => {
     )
   })
 
-  // ── Groupement par agent pour l'historique ────────────────────────────────
+  // ── Groupement par agent pour l'historique 
   const groupedByAgent = filtered.reduce<Record<string, ReclassementFromAPI[]>>((acc, r) => {
     const agent = r.carriere?.agent
     const key   = agent ? `${agent.num_matricule} — ${agent.nom} ${agent.prenoms}` : 'Agent inconnu'
@@ -83,7 +83,7 @@ export const ReclassementPage: React.FC = () => {
     return acc
   }, {})
 
-  // ── Sauvegarde ────────────────────────────────────────────────────────────
+  // ── Sauvegarde 
   const handleSave = async (data: ReclassementPayload) => {
     try {
       if (editReclassement) {
@@ -106,7 +106,7 @@ export const ReclassementPage: React.FC = () => {
     }
   }
 
-  // ── Suppression ───────────────────────────────────────────────────────────
+  // ── Suppression 
   const handleDelete = async (id: number) => {
     if (!confirm('Supprimer ce reclassement ?')) return
     try {

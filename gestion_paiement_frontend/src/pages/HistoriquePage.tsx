@@ -12,14 +12,14 @@ import '../styles/pages/HistoriquePage.css'
 
 type TabKey = 'logs' | 'modifications' | 'utilisateurs'
 
-// ── Config couleurs par action ──────────────────────────────────────────────
+// ── Config couleurs par action 
 const ACTION_CONFIG: Record<TypeAction, { label: string; bg: string; color: string; icon: string }> = {
   CREATE: { label: 'Création',     bg: '#27ae6018', color: '#27ae60', icon: '✚' },
   UPDATE: { label: 'Modification', bg: '#2980b918', color: '#2980b9', icon: '✎' },
   DELETE: { label: 'Suppression',  bg: '#c0392b18', color: '#c0392b', icon: '✕' },
 }
 
-// ── Noms lisibles des tables ────────────────────────────────────────────────
+// ── Noms lisibles des tables 
 const TABLE_LABELS: Record<string, string> = {
   agents:           'Agents',
   carrieres:        'Carrières',
@@ -73,7 +73,7 @@ export const HistoriquePage: React.FC = () => {
   const [filterDateFin, setFilterDateFin] = useState('')
   const [showFilters, setShowFilters]   = useState(false)
 
-  // ── Chargement ────────────────────────────────────────────────────────────
+  // ── Chargement 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
@@ -120,7 +120,7 @@ export const HistoriquePage: React.FC = () => {
     catch (err: any) { alert(err.response?.data?.message ?? 'Erreur') }
   }
 
-  // ── Groupement par utilisateur (vue utilisateurs) ─────────────────────────
+  // ── Groupement par utilisateur (vue utilisateurs) 
   const groupedByUser = historiques.reduce<Record<string, HistoriqueFromAPI[]>>((acc, h) => {
     const key = h.utilisateur ?? 'Inconnu'
     if (!acc[key]) acc[key] = []

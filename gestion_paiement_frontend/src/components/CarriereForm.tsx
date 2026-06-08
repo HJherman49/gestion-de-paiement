@@ -48,7 +48,7 @@ export const CarriereForm: React.FC<CarriereFormProps> = ({
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState<string | null>(null)
 
-  // ── Charger agents et barèmes ─────────────────────────────────────────────
+  // ── Charger agents et barèmes 
   useEffect(() => {
     api.get('/agents', { params: { per_page: 300 } })
       .then(r => setAgents(r.data.data ?? r.data ?? []))
@@ -59,7 +59,7 @@ export const CarriereForm: React.FC<CarriereFormProps> = ({
       .catch(() => {})
   }, [])
 
-  // ── Pré-remplir si édition ────────────────────────────────────────────────
+  // ── Pré-remplir si édition 
   useEffect(() => {
     if (carriere) {
       setForm({
@@ -78,7 +78,7 @@ export const CarriereForm: React.FC<CarriereFormProps> = ({
   const set = (key: keyof CarrierePayload, value: any) =>
     setForm(prev => ({ ...prev, [key]: value }))
 
-  // ── Auto-remplir indice depuis barème sélectionné ─────────────────────────
+  // ── Auto-remplir indice depuis barème sélectionné 
   const handleBaremeChange = (Id_bareme: number) => {
     set('Id_bareme', Id_bareme)
     const b = baremes.find(b => b.Id_bareme === Id_bareme)

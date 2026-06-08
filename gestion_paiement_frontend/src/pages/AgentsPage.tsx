@@ -29,7 +29,7 @@ export const AgentsPage: React.FC = () => {
   const [activeTab, setActiveTab]   = useState<'infos' | 'enfants' | 'affectation'>('infos')
   const PER_PAGE = 10
 
-  // ── Chargement agents ──────────────────────────────────────────────────────
+  // ── Chargement agents 
   const loadAgents = async () => {
     try {
       setLoading(true)
@@ -48,7 +48,7 @@ export const AgentsPage: React.FC = () => {
 
   useEffect(() => { loadAgents() }, [search, filterStatut])
 
-  // ── Charger les enfants d'un agent ────────────────────────────────────────
+  // ── Charger les enfants d'un agent 
   const loadEnfants = async (agentId: number) => {
     setLoadingEnfants(true)
     setAgentEnfants([])
@@ -62,7 +62,7 @@ export const AgentsPage: React.FC = () => {
     }
   }
 
-  // ── Chargement statuts ────────────────────────────────────────────────────
+  // ── Chargement statuts 
   useEffect(() => {
     const loadStatutes = async () => {
       try {
@@ -75,7 +75,7 @@ export const AgentsPage: React.FC = () => {
     loadStatutes()
   }, [])
 
-  // ── Filtrage local + pagination ───────────────────────────────────────────
+  // ── Filtrage local + pagination 
   const filtered = useMemo(() => {
     return agentsList.filter(a => {
       const q = search.toLowerCase()
@@ -92,7 +92,7 @@ export const AgentsPage: React.FC = () => {
   const paginated  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
   const totalPages = Math.ceil(filtered.length / PER_PAGE)
 
-  // ── Sauvegarde ────────────────────────────────────────────────────────────
+  // ── Sauvegarde 
   const handleSave = async (data: AgentFormData) => {
     try {
       let savedAgent: any = null
@@ -124,7 +124,7 @@ export const AgentsPage: React.FC = () => {
     }
   }
 
-  // ── Suppression ───────────────────────────────────────────────────────────
+  // ── Suppression 
   const handleDelete = async (id: number) => {
     if (!confirm('Voulez-vous vraiment supprimer cet agent ?')) return
     try {

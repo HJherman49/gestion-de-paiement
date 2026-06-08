@@ -48,14 +48,14 @@ export const ReclassementForm: React.FC<ReclassementFormProps> = ({
   // Carrière sélectionnée (pour affichage info)
   const selectedCarriere = carrieres.find(c => c.Id_carriere === form.Id_carriere)
 
-  // ── Charger les carrières ─────────────────────────────────────────────────
+  // ── Charger les carrières
   useEffect(() => {
     api.get('/carrieres', { params: { per_page: 300 } })
       .then(r => setCarrieres(r.data.data ?? r.data ?? []))
       .catch(() => {})
   }, [])
 
-  // ── Pré-remplir si édition ────────────────────────────────────────────────
+  // ── Pré-remplir si édition 
   useEffect(() => {
     if (reclassement) {
       setForm({

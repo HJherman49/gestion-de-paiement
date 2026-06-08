@@ -7,7 +7,7 @@ import '../styles/components/AgentForm.css'
 
 interface AgentFormProps {
   agent?: Agent | null
-  onSave: (data: AgentFormData) => void
+  onSave: (data: AgentFormData) => Promise<Agent | null>
   onClose: () => void
 }
 
@@ -21,7 +21,6 @@ const STEPS: { key: FormStep; label: string; icon: React.ReactNode }[] = [
   { key: 'enfants', label: 'Enfants', icon: <Baby size={15} /> },
 ]
 
-//const DIPLOMES_OPTIONS = ['Aucun', 'BEPC', 'Baccalauréat', 'Licence', 'Master', 'Doctorat', 'Autre']
 
 interface DiplomeAPI {
   Id_diplome: number
@@ -30,6 +29,7 @@ interface DiplomeAPI {
 }
 
 interface Enfant {
+  Id_enfant?: number
   date_naissance: string
 }
 
@@ -118,7 +118,6 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     )
 
-  // ✅ CORRIGÉ : Listes filtrées en cascade basées directement sur form
   const filteredServices = services.filter(s => String(s.Id_direction) === String(form.Id_direction))
   const filteredDivisions = divisions.filter(d => String(d.Id_service) === String(form.Id_service))
 
@@ -221,11 +220,35 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
     }
   }, [agent])
 
+  // Charger les enfants existants de l'agent en édition
+  useEffect(() => {
+    const fetchEnfants = async () => {
+      if (!agent?.Id_agent) {
+        setEnfants([])
+        return
+      }
+      try {
+        const res = await api.get(`/agents/${agent.Id_agent}/enfants`)
+        const list = (res.data.data ?? res.data ?? [])
+        // Adapter au format local { Id_enfant, date_naissance }
+        const mapped: Enfant[] = list.map((e: any) => ({
+          Id_enfant: e.Id_enfant,
+          date_naissance: e.date_de_naissance || '',
+        }))
+        setEnfants(mapped)
+      } catch (err) {
+        console.warn("Impossible de charger les enfants de l'agent:", err)
+        setEnfants([])
+      }
+    }
+    fetchEnfants()
+  }, [agent])
+
   const set = (key: keyof AgentFormData, value: string | number) => {
     setForm(prev => ({ ...prev, [key]: value }))
   }
 
-  // ── Calcul automatique des compteurs enfants ──────────────────────────
+  // ── Calcul automatique des compteurs enfants 
   const calculerCompteurs = () => {
     const now = new Date()
     let inf15 = 0
@@ -239,56 +262,70 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
     return { total: enfants.length, inf15, sup15 }
   }
 
-  // ── Envoyer les enfants à l'API après création/modification de l'agent ──
+  // ── Envoyer les enfants à l'API après création/modification de l'agent 
   const sauvegarderEnfants = async (Id_agent: number) => {
-    if (enfants.length === 0) return
-
     const { total, inf15, sup15 } = calculerCompteurs()
 
-    // On envoie toutes les dates + les totaux calculés
-    // Si l'agent avait déjà des enfants → on les supprime et recrée (stratégie replace)
-    if (agent) {
-      // Récupérer les enfants existants de cet agent et les supprimer
+    const buildPayload = (date_naissance: string) => ({
+      Id_agent,
+      date_de_naissance: date_naissance,
+      Nb_enf: total,
+      Nb_enf_inf_15ans: inf15,
+      Nb_enf_sup_15ans: sup15,
+    })
+
+    if (agent?.Id_agent) {
       try {
         const existing = await api.get(`/agents/${Id_agent}/enfants`)
         const existingList = existing.data.data ?? existing.data ?? []
+        const existingById = new Map<number, any>(
+          existingList.map((e: any) => [e.Id_enfant, e])
+        )
+
+        const keptEnfants = enfants.filter(e => !!e.Id_enfant)
+        const newEnfants = enfants.filter(e => !e.Id_enfant && e.date_naissance)
+        const deletedEnfants = existingList.filter((e: any) =>
+          !keptEnfants.some(k => k.Id_enfant === e.Id_enfant)
+        )
+
         await Promise.all(
-          existingList.map((e: any) => api.delete(`/enfants/${e.Id_enfant}`))
+          deletedEnfants.map((e: any) =>
+            api.delete(`/enfants/${e.Id_enfant}`).catch((err: any) => {
+              if (err?.response?.status !== 404) throw err
+            })
+          )
+        )
+
+        await Promise.all(
+          keptEnfants
+            .filter(e => {
+              const existing = e.Id_enfant ? existingById.get(e.Id_enfant) : null
+              return existing && existing.date_de_naissance !== e.date_naissance
+            })
+            .map(e =>
+              api.put(`/enfants/${e.Id_enfant}`, buildPayload(e.date_naissance))
+            )
+        )
+
+        await Promise.all(
+          newEnfants.map(e => api.post('/enfants', buildPayload(e.date_naissance)))
         )
       } catch (err) {
-        console.warn("Impossible de supprimer les anciens enfants:", err)
+        console.warn("Impossible de synchroniser les enfants de l'agent:", err)
       }
+      return
     }
 
-    // enregistrement des enfants avec calcul 
+    if (enfants.length === 0) return
+
     await Promise.all(
       enfants
-        .filter(e => e.date_naissance) // ignorer les dates vides
-        .map(e =>
-          api.post('/enfants', {
-            Id_agent:          Id_agent,
-            date_de_naissance: e.date_naissance,
-            Nb_enf:            total,
-            Nb_enf_inf_15ans:  inf15,
-            Nb_enf_sup_15ans:  sup15,
-          })
-        )
+        .filter(e => e.date_naissance)
+        .map(e => api.post('/enfants', buildPayload(e.date_naissance)))
     )
   }
 
-    // ── Enregistrer les diplômes via sync (many-to-many) ────────────────────
-  const sauvegarderDiplomes = async (Id_agent: number) => {
-    if (selectedDiplomeIds.length === 0) return
-    try {
-      await api.post(`/agents/${Id_agent}/diplomes/sync`, {
-        diplomes: selectedDiplomeIds,
-      })
-    } catch (err) {
-      console.warn('Impossible de synchroniser les diplômes:', err)
-    }
-  }
-
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     if (!form.num_matricule || !form.nom || !form.prenoms) {
       alert('Veuillez remplir les champs obligatoires : Matricule, Nom, Prénoms')
       setStep('identite')
@@ -298,7 +335,7 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
     try {
       // 1. Sauvegarder l'agent (create ou update) via onSave
       // onSave retourne l'agent sauvegardé avec son Id_agent
-      const payload = { ...form }
+      const payload = { ...form, diplomes: selectedDiplomeIds }
       if (payload.Id_direction === 0) delete payload.Id_direction
       if (payload.Id_service === 0) delete payload.Id_service
       if (payload.Id_division === 0) delete payload.Id_division
@@ -308,29 +345,16 @@ export const AgentForm: React.FC<AgentFormProps> = ({ agent, onSave, onClose }) 
       if (payload.date_entree_admin === '') delete payload.date_entree_admin
       if (payload.date_delivrance_CI === '') delete payload.date_delivrance_CI
       if (payload.date_retraite === '') delete payload.date_retraite
-      await onSave(payload)
+      const savedAgent = await onSave(payload)
 
-      // 2. Enregistrer les enfants si présents
-      // On récupère l'Id_agent : si édition → agent.Id_agent, sinon on le cherche par matricule
-      if (enfants.length > 0) {
-        let Id_agent: number | null = null
+      const Id_agent = savedAgent?.Id_agent ?? agent?.Id_agent
+      if (!Id_agent) {
+        throw new Error('Impossible de récupérer l\'Id_agent après la sauvegarde de l\'agent.')
+      }
 
-        if (agent?.Id_agent) {
-          Id_agent = agent.Id_agent
-        } else {
-          // Nouvel agent : chercher par matricule pour récupérer l'id
-          try {
-            const res = await api.get('/agents', { params: { search: form.num_matricule } })
-            const found = (res.data.data ?? [])[0]
-            Id_agent = found?.Id_agent ?? null
-          } catch (err) {
-            console.warn("Impossible de récupérer l'Id_agent:", err)
-          }
-        }
-
-        if (Id_agent) {
-          await sauvegarderEnfants(Id_agent)
-        }
+      // 2. Synchroniser les enfants de l'agent
+      if (agent || enfants.length > 0) {
+        await sauvegarderEnfants(Id_agent)
       }
     } catch (err) {
       console.error('Erreur lors de la soumission:', err)

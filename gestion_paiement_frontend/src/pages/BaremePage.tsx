@@ -25,7 +25,7 @@ export const BaremePage: React.FC = () => {
   const [error, setError]           = useState<string | null>(null)
   const [sortBy, setSortBy]         = useState<'Indice' | 'salaire_base'>('Indice')
 
-  // ── Chargement ────────────────────────────────────────────────────────────
+  // ── Chargement 
   const load = async () => {
     setLoading(true); setError(null)
     try {
@@ -42,7 +42,7 @@ export const BaremePage: React.FC = () => {
 
   useEffect(() => { load() }, [page])
 
-  // ── Filtrage + tri ────────────────────────────────────────────────────────
+  // ── Filtrage + tri 
   const filtered = baremes
     .filter(b => {
       const q = search.toLowerCase()
@@ -57,7 +57,7 @@ export const BaremePage: React.FC = () => {
       : Number(b.salaire_base) - Number(a.salaire_base)
     )
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
+  // ── Stats 
   const maxSalaire = baremes.length
     ? Math.max(...baremes.map(b => Number(b.salaire_base)))
     : 0
@@ -68,7 +68,7 @@ export const BaremePage: React.FC = () => {
     ? baremes.reduce((s, b) => s + Number(b.salaire_base), 0) / baremes.length
     : 0
 
-  // ── Sauvegarde ────────────────────────────────────────────────────────────
+  // ── Sauvegarde
   const handleSave = async (data: BaremePayload) => {
     if (editBareme) { await updateBareme(editBareme.Id_bareme, data); alert('Barème modifié') }
     else            { await createBareme(data); alert('Barème créé') }

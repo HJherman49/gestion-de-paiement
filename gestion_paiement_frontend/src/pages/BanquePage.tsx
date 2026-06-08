@@ -20,7 +20,7 @@ const fmt = (str: string | null | undefined) => str || '—'
 export const BanquePage: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('banques')
 
-  // ── État banques ──────────────────────────────────────────────────────────
+  // ── État banques
   const [banques, setBanques]           = useState<BanqueFromAPI[]>([])
   const [loadingB, setLoadingB]         = useState(true)
   const [showBanqueForm, setShowBanqueForm] = useState(false)
@@ -31,7 +31,7 @@ export const BanquePage: React.FC = () => {
   const [totalB, setTotalB]             = useState(0)
   const [searchB, setSearchB]           = useState('')
 
-  // ── État comptes ──────────────────────────────────────────────────────────
+  // ── État comptes 
   const [comptes, setComptes]               = useState<CompteBancaireFromAPI[]>([])
   const [loadingC, setLoadingC]             = useState(true)
   const [showCompteForm, setShowCompteForm] = useState(false)
@@ -44,7 +44,7 @@ export const BanquePage: React.FC = () => {
 
   const [error, setError] = useState<string | null>(null)
 
-  // ── Chargements ───────────────────────────────────────────────────────────
+  // ── Chargements 
   const loadBanques = async () => {
     setLoadingB(true)
     try {
@@ -70,7 +70,7 @@ export const BanquePage: React.FC = () => {
   useEffect(() => { loadBanques() }, [pageB])
   useEffect(() => { loadComptes() }, [pageC])
 
-  // ── Filtrage ──────────────────────────────────────────────────────────────
+  // ── Filtrage 
   const filteredBanques = banques.filter(b => {
     const q = searchB.toLowerCase()
     return b.Nom_banque?.toLowerCase().includes(q) || b.agence?.toLowerCase().includes(q) || b.code_banque?.includes(q)
@@ -87,7 +87,7 @@ export const BanquePage: React.FC = () => {
     )
   })
 
-  // ── Sauvegarde banque ─────────────────────────────────────────────────────
+  // ── Sauvegarde banque 
   const handleSaveBanque = async (data: BanquePayload) => {
     if (editBanque) { await updateBanque(editBanque.Id_banque, data); alert('Banque modifiée') }
     else            { await createBanque(data); alert('Banque créée') }
@@ -103,7 +103,7 @@ export const BanquePage: React.FC = () => {
     }
   }
 
-  // ── Sauvegarde compte ─────────────────────────────────────────────────────
+  // ── Sauvegarde compte 
   const handleSaveCompte = async (data: CompteBancairePayload) => {
     if (editCompte) { await updateCompte(editCompte.Id_compte, data); alert('Compte modifié') }
     else            { await createCompte(data); alert('Compte créé') }

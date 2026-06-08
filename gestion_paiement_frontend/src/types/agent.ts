@@ -84,4 +84,5 @@ export type AgentFormData = Omit<Agent, 'Id_agent' | 'direction' | 'service' | '
   Id_division?: number | string
   Id_statut?: number | string
   Id_contrat?: number | string
+  diplomes?: number[]
 }

@@ -1,4 +1,4 @@
-/* ==================== MAIN NAVBAR ==================== */
+
 .navbar-header {
   position: sticky;
   top: 0;
@@ -6,9 +6,13 @@
 }
 
 .main-navbar {
-  background: #fff;
+  background: var(--instat-white);
   border-bottom: 3px solid var(--instat-red);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow:
+        10px 10px 20px #a3b1c6,
+        -10px -10px 20px #ffffff;
+  margin-top: 20px;
+  border-radius: 8888px;
 }
 
 .navbar-container {
@@ -73,6 +77,9 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  background: rgb(217, 215, 215);
+  padding: 6px 12px;
+  border-radius: 9999px;
 }
 
 .nav-item-btn {
@@ -85,14 +92,20 @@
   text-transform: uppercase;
   border-radius: 9999px;
   transition: all 0.2s;
-  white-space: nowrap;         /* ← Empêche le texte de passer à la ligne */
-  flex-shrink: 0;              /* ← Empêche le bouton de rétrécir */
+  white-space: nowrap;         
+  flex-shrink: 0;            
 }
 
-.nav-item-btn:hover { background: #f8fafc; color: var(--instat-dark); }
-.nav-item-btn.active { background: var(--instat-red); color: white; }
+.nav-item-btn:hover { 
+  background: #f4c9c9; 
+  color: var(--instat-dark); 
+}
+.nav-item-btn.active { 
+  background: var(--instat-red); 
+  color: white; 
+}
 
-/* Right Side */
+
 .navbar-right {
   display: flex;
   align-items: center;
@@ -106,21 +119,28 @@
   cursor: pointer;
   padding: 6px;
   font-size: 1.6rem;
+  transition: all 0.3s ease;
+  margin-left: 6px;
+}
+.menu-btn:hover {
+    background: rgb(217, 215, 215);
+    color: #000000;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    border-radius: 40%;
 }
 
-/* Search, Notification, User... (tes styles existants) */
 
-/* Dropdown Menu */
 .dropdown-menu {
   position: absolute;
-  top: 75px;
-  right: 280px;           /* Ajuste selon la largeur de tes éléments à droite */
+  top: 90px;
+  right: 380px;           
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
   z-index: 200;
-  min-width: 230px;
+  min-width: 130px;
   padding: 10px 0;
 }
 
@@ -142,7 +162,8 @@
 }
 
 .menu-link:hover {
-  background: #f8fafc;
+  background: #f4c9c9;
+  border-radius: 8px;
   color: var(--instat-dark);
 }
 
@@ -158,6 +179,7 @@
   justify-content: center;
   gap: 8px;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .search-container {

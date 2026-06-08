@@ -1,13 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Bell, X, Check, CheckCheck, Filter, Trash2 } from 'lucide-react'
-import type { Notification, NotifCategorie } from '../data/notifications'
-import {
-  NOTIFICATIONS_MOCK,
-  NOTIF_CATEGORIES,
-  NOTIF_PRIORITE,
-} from '../data/notifications'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { Bell, X, Check, CheckCheck, Filter, Trash2, RefreshCw } from 'lucide-react'
+import type { NotifCategorie } from '../data/notifications'
+import { NOTIF_CATEGORIES, NOTIF_PRIORITE } from '../data/notifications'
+import api from '../services/api'
+import '../styles/components/Notificationpanel.css'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Types 
+
+export interface Notification {
+  id:               number
+  titre:            string
+  message:          string
+  categorie:        NotifCategorie
+  priorite:         'haute' | 'moyenne' | 'info'
+  date:             string
+  lue:              boolean
+  agent_matricule?: string
+  agent_nom?:       string
+  type_action?:     string
+  table_concernee?: string
+  utilisateur?:     string
+}
+
+// ── Helpers 
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime()
@@ -22,28 +37,97 @@ const timeAgo = (iso: string): string => {
 }
 
 const CATS_FILTER: { key: NotifCategorie | 'all'; label: string; emoji: string }[] = [
-  { key: 'all',       label: 'Tout',       emoji: '🔔' },
-  { key: 'agent',     label: 'Agents',     emoji: '👤' },
-  { key: 'affectation',label:'Affectation',emoji: '🔀' },
-  { key: 'promotion', label: 'Promotion',  emoji: '📈' },
-  { key: 'contrat',   label: 'Contrats',   emoji: '📄' },
-  { key: 'retraite',  label: 'Retraite',   emoji: '🏖️' },
-  { key: 'paie',      label: 'Paie',       emoji: '💰' },
-  { key: 'audit',     label: 'Audit',      emoji: '🔒' },
-  { key: 'famille',   label: 'Famille',    emoji: '👶' },
-  { key: 'diplome',   label: 'Diplômes',   emoji: '🎓' },
+  { key: 'all',        label: 'Tout',       emoji: '🔔' },
+  { key: 'agent',      label: 'Agents',     emoji: '👤' },
+  { key: 'affectation',label: 'Affectation',emoji: '🔀' },
+  { key: 'promotion',  label: 'Promotion',  emoji: '📈' },
+  { key: 'contrat',    label: 'Contrats',   emoji: '📄' },
+  { key: 'retraite',   label: 'Retraite',   emoji: '🏖️' },
+  { key: 'paie',       label: 'Paie',       emoji: '💰' },
+  { key: 'audit',      label: 'Audit',      emoji: '🔒' },
+  { key: 'famille',    label: 'Famille',    emoji: '👶' },
+  { key: 'diplome',    label: 'Diplômes',   emoji: '🎓' },
 ]
 
-// ── Composant ─────────────────────────────────────────────────────────────────
+const POLL_INTERVAL = 30_000 // 30 secondes
+
+// ── Composant 
 
 export const NotificationPanel: React.FC = () => {
-  const [open, setOpen]             = useState(false)
-  const [notifs, setNotifs]         = useState<Notification[]>(NOTIFICATIONS_MOCK)
+  const [open, setOpen]                 = useState(false)
+  const [notifs, setNotifs]             = useState<Notification[]>([])
+  const [loading, setLoading]           = useState(false)
+  const [lastFetch, setLastFetch]       = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<NotifCategorie | 'all'>('all')
   const [showUnreadOnly, setShowUnreadOnly] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
+  const [countdown, setCountdown]       = useState(POLL_INTERVAL / 1000)
+  const panelRef   = useRef<HTMLDivElement>(null)
+  const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const countRef   = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Fermer si clic en dehors
+  // ── Charger les notifications depuis l'API 
+  const fetchNotifs = useCallback(async (isPolling = false) => {
+    if (!isPolling) setLoading(true)
+    try {
+      const params: Record<string, string> = {}
+      // Si polling → envoyer "depuis" pour ne récupérer que les nouvelles
+      if (isPolling && lastFetch) params.depuis = lastFetch
+
+      const res = await api.get('/notifications', { params })
+      const data: Notification[] = res.data.data ?? []
+      const serverTime: string   = res.data.server_time ?? new Date().toISOString()
+
+      setLastFetch(serverTime)
+
+      if (isPolling && data.length > 0) {
+        // Ajouter les nouvelles notifications en tête de liste
+        setNotifs(prev => {
+          const existingIds = new Set(prev.map(n => n.id))
+          const newOnes = data.filter(n => !existingIds.has(n.id))
+          if (newOnes.length === 0) return prev
+          // Jouer un son ou vibrer si nouvelles notifs urgentes
+          const hasUrgent = newOnes.some(n => n.priorite === 'haute')
+          if (hasUrgent) document.title = `🔴 ${newOnes.length} nouvelle(s) notification(s) — SIRH`
+          setTimeout(() => { document.title = 'SIRH — INSTAT' }, 4000)
+          return [...newOnes, ...prev]
+        })
+      } else if (!isPolling) {
+        // Chargement initial
+        setNotifs(data)
+      }
+    } catch (err) {
+      console.warn('Notifications non disponibles:', err)
+      // Pas d'erreur visible — les notifs restent dans l'état précédent
+    } finally {
+      setLoading(false)
+    }
+  }, [lastFetch])
+
+  // ── Chargement initial 
+  useEffect(() => {
+    fetchNotifs(false)
+  }, [])
+
+  // ── Polling toutes les 30s 
+  useEffect(() => {
+    // Polling
+    pollRef.current = setInterval(() => {
+      fetchNotifs(true)
+      setCountdown(POLL_INTERVAL / 1000)
+    }, POLL_INTERVAL)
+
+    // Compte à rebours
+    countRef.current = setInterval(() => {
+      setCountdown(prev => prev <= 1 ? POLL_INTERVAL / 1000 : prev - 1)
+    }, 1000)
+
+    return () => {
+      if (pollRef.current)  clearInterval(pollRef.current)
+      if (countRef.current) clearInterval(countRef.current)
+    }
+  }, [fetchNotifs])
+
+  // ── Fermer si clic dehors 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -54,229 +138,188 @@ export const NotificationPanel: React.FC = () => {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const nonLues = notifs.filter(n => !n.lue).length
+  // ── Actions 
+  const nonLues     = notifs.filter(n => !n.lue).length
+  const markLue     = (id: number) => setNotifs(p => p.map(n => n.id === id ? { ...n, lue: true } : n))
+  const markAll     = ()           => setNotifs(p => p.map(n => ({ ...n, lue: true })))
+  const deleteNotif = (id: number) => setNotifs(p => p.filter(n => n.id !== id))
+  const clearAll    = ()           => setNotifs([])
 
   const filtered = notifs.filter(n => {
-    const matchCat  = activeFilter === 'all' || n.categorie === activeFilter
-    const matchLue  = !showUnreadOnly || !n.lue
+    const matchCat = activeFilter === 'all' || n.categorie === activeFilter
+    const matchLue = !showUnreadOnly || !n.lue
     return matchCat && matchLue
   })
 
-  const markLue       = (id: number) => setNotifs(p => p.map(n => n.id === id ? { ...n, lue: true } : n))
-  const markAll       = ()           => setNotifs(p => p.map(n => ({ ...n, lue: true })))
-  const deleteNotif   = (id: number) => setNotifs(p => p.filter(n => n.id !== id))
-  const clearAll      = ()           => setNotifs([])
-
-  // Compter par catégorie
   const countByCat = (cat: NotifCategorie | 'all') =>
     cat === 'all'
       ? notifs.filter(n => !n.lue).length
       : notifs.filter(n => n.categorie === cat && !n.lue).length
 
-  return (
-    <div ref={panelRef} style={{ position: 'relative' }}>
+  const handleRefresh = () => {
+    fetchNotifs(false)
+    setCountdown(POLL_INTERVAL / 1000)
+    // Reset poll timer
+    if (pollRef.current) clearInterval(pollRef.current)
+    pollRef.current = setInterval(() => {
+      fetchNotifs(true)
+      setCountdown(POLL_INTERVAL / 1000)
+    }, POLL_INTERVAL)
+  }
 
-      {/* ── Bouton Bell ── */}
+  return (
+    <div ref={panelRef} className="np-wrapper">
+
+      {/* Bouton Bell */}
       <button
+        className={`np-bell-btn ${open ? 'open' : ''}`}
         onClick={() => setOpen(v => !v)}
-        style={{
-          position: 'relative', background: 'none', border: 'none',
-          cursor: 'pointer', color: open ? '#1a1f3c' : '#9aa3b5',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: '36px', height: '36px', borderRadius: '8px',
-          transition: 'background 0.15s, color 0.15s',
-          
-        }}
+        title="Notifications"
       >
         <Bell size={18} />
         {nonLues > 0 && (
-          <span style={{
-            position: 'absolute', top: '2px', right: '2px',
-            background: '#c0392b', color: '#fff',
-            borderRadius: '50%', minWidth: '16px', height: '16px',
-            fontSize: '9px', fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '0 3px', border: '2px solid #fff',
-            fontFamily: 'DM Sans, sans-serif',
-          }}>
-            {nonLues > 99 ? '99+' : nonLues}
-          </span>
+          <span className="np-badge">{nonLues > 99 ? '99+' : nonLues}</span>
         )}
       </button>
 
-      {/* ── Panel ── */}
+      {/* Panel */}
       {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 10px)', right: 0,
-          width: '420px', maxHeight: '600px',
-          background: '#fff', borderRadius: '16px',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.16)',
-          border: '1px solid #e2e6ef',
-          display: 'flex', flexDirection: 'column',
-          zIndex: 9999, overflow: 'hidden',
-        }}>
+        <div className="np-panel">
 
-          {/* Header panel */}
-          <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #f0f2f7' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: '#1a1f3c' }}>Notifications</span>
+          {/* Header */}
+          <div className="np-header">
+            <div className="np-header-top">
+              <div className="np-header-left">
+                <span className="np-title">Notifications</span>
                 {nonLues > 0 && (
-                  <span style={{ background: '#c0392b', color: '#fff', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>
+                  <span className="np-unread-badge">
                     {nonLues} non lue{nonLues > 1 ? 's' : ''}
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="np-header-actions">
+                {/* Bouton refresh manuel + countdown */}
+                <button
+                  className="np-btn-refresh"
+                  onClick={handleRefresh}
+                  title={`Actualiser (auto dans ${countdown}s)`}
+                  disabled={loading}
+                >
+                  <RefreshCw size={11} className={loading ? 'np-spin' : ''} />
+                  <span>{loading ? '...' : `${countdown}s`}</span>
+                </button>
                 {nonLues > 0 && (
-                  <button onClick={markAll} title="Tout marquer comme lu" style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid #e2e6ef', background: '#fff', fontSize: '11px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', color: '#5a6478', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                  <button className="np-btn-mark-all" onClick={markAll} title="Tout marquer comme lu">
                     <CheckCheck size={12} /> Tout lire
                   </button>
                 )}
-                <button onClick={clearAll} title="Effacer tout" style={{ padding: '5px', borderRadius: '6px', border: '1px solid #e2e6ef', background: '#fff', cursor: 'pointer', color: '#9aa3b5', display: 'flex', alignItems: 'center' }}>
+                <button className="np-btn-clear" onClick={clearAll} title="Effacer tout">
                   <Trash2 size={13} />
                 </button>
               </div>
             </div>
 
-            {/* Toggle non lues seulement */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Toggle non lues */}
+            <div className="np-filter-row">
               <button
+                className={`np-btn-unread ${showUnreadOnly ? 'active' : ''}`}
                 onClick={() => setShowUnreadOnly(v => !v)}
-                style={{
-                  padding: '4px 10px', borderRadius: '20px', border: '1px solid',
-                  borderColor: showUnreadOnly ? '#1a1f3c' : '#e2e6ef',
-                  background: showUnreadOnly ? '#1a1f3c' : '#fff',
-                  color: showUnreadOnly ? '#fff' : '#9aa3b5',
-                  fontSize: '11px', fontWeight: 600, cursor: 'pointer',
-                  fontFamily: 'DM Sans, sans-serif', display: 'flex', alignItems: 'center', gap: '4px',
-                }}
               >
                 <Filter size={10} /> Non lues seulement
               </button>
-              <span style={{ fontSize: '11px', color: '#9aa3b5' }}>{filtered.length} notification{filtered.length > 1 ? 's' : ''}</span>
+              <span className="np-filter-count">
+                {filtered.length} notification{filtered.length > 1 ? 's' : ''}
+              </span>
             </div>
           </div>
 
-          {/* Filtres catégories — scrollable horizontal */}
-          <div style={{ display: 'flex', gap: '6px', padding: '10px 18px', overflowX: 'auto', borderBottom: '1px solid #f0f2f7', flexShrink: 0 }}>
+          {/* Filtres catégories */}
+          <div className="np-cats">
             {CATS_FILTER.map(cat => {
-              const count = countByCat(cat.key)
+              const count  = countByCat(cat.key)
               const active = activeFilter === cat.key
               return (
                 <button
                   key={cat.key}
+                  className={`np-cat-btn ${active ? 'active' : ''}`}
                   onClick={() => setActiveFilter(cat.key)}
-                  style={{
-                    padding: '5px 10px', borderRadius: '20px', border: '1px solid',
-                    borderColor: active ? '#1a1f3c' : '#e2e6ef',
-                    background: active ? '#1a1f3c' : '#fff',
-                    color: active ? '#fff' : '#5a6478',
-                    fontSize: '11px', fontWeight: active ? 700 : 500,
-                    cursor: 'pointer', fontFamily: 'DM Sans, sans-serif',
-                    display: 'flex', alignItems: 'center', gap: '4px',
-                    whiteSpace: 'nowrap', flexShrink: 0,
-                  }}
                 >
                   {cat.emoji} {cat.label}
-                  {count > 0 && (
-                    <span style={{ background: active ? 'rgba(255,255,255,0.25)' : '#c0392b', color: '#fff', borderRadius: '50%', minWidth: '15px', height: '15px', fontSize: '9px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px' }}>
-                      {count}
-                    </span>
-                  )}
+                  {count > 0 && <span className="np-cat-count">{count}</span>}
                 </button>
               )
             })}
           </div>
 
-          {/* Liste notifications */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {filtered.length === 0 ? (
-              <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔔</div>
-                <p style={{ fontSize: '13px', color: '#9aa3b5', fontWeight: 500 }}>Aucune notification</p>
-                <p style={{ fontSize: '12px', color: '#c5ccd9', marginTop: '4px' }}>
-                  {showUnreadOnly ? 'Toutes les notifications ont été lues' : 'Rien à afficher'}
+          {/* Liste */}
+          <div className="np-list">
+            {loading && notifs.length === 0 ? (
+              <div className="np-empty">
+                <div className="np-empty-icon">
+                  <RefreshCw size={24} className="np-spin" style={{ color: 'var(--instat-gray-300)' }} />
+                </div>
+                <p className="np-empty-title">Chargement...</p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="np-empty">
+                <div className="np-empty-icon">🔔</div>
+                <p className="np-empty-title">Aucune notification</p>
+                <p className="np-empty-sub">
+                  {showUnreadOnly
+                    ? 'Toutes les notifications ont été lues'
+                    : notifs.length === 0
+                      ? 'Aucune activité récente dans le système'
+                      : 'Rien à afficher dans cette catégorie'}
                 </p>
               </div>
             ) : (
-              filtered.map((n, i) => {
-                const cat = NOTIF_CATEGORIES[n.categorie]
+              filtered.map(n => {
+                const cat  = NOTIF_CATEGORIES[n.categorie] ?? NOTIF_CATEGORIES['audit']
                 const prio = NOTIF_PRIORITE[n.priorite]
                 return (
                   <div
                     key={n.id}
-                    style={{
-                      padding: '12px 18px',
-                      borderBottom: i < filtered.length - 1 ? '1px solid #f8f9fc' : 'none',
-                      background: n.lue ? '#fff' : '#f8f9ff',
-                      display: 'flex', gap: '12px', alignItems: 'flex-start',
-                      transition: 'background 0.15s',
-                      cursor: n.lue ? 'default' : 'pointer',
-                    }}
+                    className={`np-item ${!n.lue ? 'unread' : ''}`}
                     onClick={() => !n.lue && markLue(n.id)}
                   >
-                    {/* Icône catégorie */}
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: '10px',
-                      background: cat.bg, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '16px',
-                    }}>
+                    <div className="np-item-icon" style={{ background: cat.bg }}>
                       {cat.emoji}
                     </div>
 
-                    {/* Contenu */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '2px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: n.lue ? 500 : 700, color: '#1a1f3c', lineHeight: 1.3 }}>
+                    <div className="np-item-body">
+                      <div className="np-item-top">
+                        <span className={`np-item-title ${!n.lue ? 'bold' : ''}`}>
                           {n.titre}
                         </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                          {!n.lue && (
-                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#c0392b', flexShrink: 0 }} />
-                          )}
-                          <span style={{ fontSize: '10px', color: '#9aa3b5', whiteSpace: 'nowrap' }}>{timeAgo(n.date)}</span>
+                        <div className="np-item-right">
+                          {!n.lue && <span className="np-unread-dot" />}
+                          <span className="np-item-time">{timeAgo(n.date)}</span>
                         </div>
                       </div>
 
-                      <p style={{ fontSize: '12px', color: '#5a6478', lineHeight: 1.4, marginBottom: '6px' }}>
-                        {n.message}
-                      </p>
+                      <p className="np-item-msg">{n.message}</p>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {/* Badge catégorie */}
-                        <span style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, background: cat.bg, color: cat.color }}>
+                      <div className="np-item-footer">
+                        <span className="np-cat-badge" style={{ background: cat.bg, color: cat.color }}>
                           {cat.emoji} {cat.label}
                         </span>
-                        {/* Badge priorité */}
                         {n.priorite !== 'info' && (
-                          <span style={{ padding: '2px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, background: `${prio.color}15`, color: prio.color }}>
+                          <span className="np-prio-badge" style={{ background: `${prio.color}15`, color: prio.color }}>
                             {n.priorite === 'haute' ? '⚠️ Urgent' : '• Moyen'}
                           </span>
                         )}
-                        {/* Agent matricule */}
-                        {n.agent_matricule && (
-                          <span style={{ fontSize: '10px', color: '#9aa3b5', fontFamily: 'DM Mono, monospace' }}>
-                            {n.agent_matricule}
-                          </span>
+                        {n.utilisateur && (
+                          <span className="np-matricule">par {n.utilisateur}</span>
                         )}
-                        {/* Boutons actions */}
-                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px' }}>
+                        <div className="np-item-actions">
                           {!n.lue && (
-                            <button
-                              onClick={e => { e.stopPropagation(); markLue(n.id) }}
-                              title="Marquer comme lu"
-                              style={{ width: '22px', height: '22px', borderRadius: '4px', border: '1px solid #e2e6ef', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#27ae60' }}
-                            >
+                            <button className="np-action-btn read" title="Marquer comme lu"
+                              onClick={e => { e.stopPropagation(); markLue(n.id) }}>
                               <Check size={11} />
                             </button>
                           )}
-                          <button
-                            onClick={e => { e.stopPropagation(); deleteNotif(n.id) }}
-                            title="Supprimer"
-                            style={{ width: '22px', height: '22px', borderRadius: '4px', border: '1px solid #e2e6ef', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0392b' }}
-                          >
+                          <button className="np-action-btn delete" title="Supprimer"
+                            onClick={e => { e.stopPropagation(); deleteNotif(n.id) }}>
                             <X size={11} />
                           </button>
                         </div>
@@ -289,13 +332,11 @@ export const NotificationPanel: React.FC = () => {
           </div>
 
           {/* Footer */}
-          <div style={{ padding: '10px 18px', borderTop: '1px solid #f0f2f7', background: '#f8f9fc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: '#9aa3b5' }}>
-              {notifs.length} total · {nonLues} non lue{nonLues > 1 ? 's' : ''}
+          <div className="np-footer">
+            <span className="np-footer-info">
+              {notifs.length} total · {nonLues} non lue{nonLues > 1 ? 's' : ''} · actualisation dans {countdown}s
             </span>
-            <button onClick={() => setOpen(false)} style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid #e2e6ef', background: '#fff', fontSize: '11px', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', color: '#5a6478', fontWeight: 600 }}>
-              Fermer
-            </button>
+            <button className="np-btn-close" onClick={() => setOpen(false)}>Fermer</button>
           </div>
         </div>
       )}

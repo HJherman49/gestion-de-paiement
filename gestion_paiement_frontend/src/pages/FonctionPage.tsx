@@ -30,7 +30,7 @@ export const FonctionPage: React.FC = () => {
   const [total, setTotal]               = useState(0)
   const [error, setError]               = useState<string | null>(null)
 
-  // ── Chargement ────────────────────────────────────────────────────────────
+  // ── Chargement 
   const load = async () => {
     setLoading(true); setError(null)
     try {
@@ -47,7 +47,7 @@ export const FonctionPage: React.FC = () => {
 
   useEffect(() => { load() }, [page])
 
-  // ── Filtrage ──────────────────────────────────────────────────────────────
+  // ── Filtrage 
   const filtered = fonctions.filter(f => {
     const q = search.toLowerCase()
     return (
@@ -61,7 +61,7 @@ export const FonctionPage: React.FC = () => {
     )
   })
 
-  // ── Sauvegarde ────────────────────────────────────────────────────────────
+  // ── Sauvegarde 
   const handleSave = async (data: FonctionPayload) => {
     try {
       if (editFonction) { await updateFonction(editFonction.Id_fonction, data); alert('Fonction modifiée') }

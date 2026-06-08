@@ -46,7 +46,7 @@ export interface PaiePayload {
   art:             string
   date_effet:      string
   Id_agent:        number
-  Id_enfant?:      number
+  Id_enfant?:      number | null
 }
 
 export const getPaies       = async (params: { page?: number; per_page?: number; search?: string } = {}) =>

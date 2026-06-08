@@ -6,7 +6,7 @@ import {
 import api from '../services/api'
 import '../styles/components/AdminModal.css'
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// ── Types
 
 interface RefItem { id: number; label: string; extra?: string }
 
@@ -31,7 +31,7 @@ interface AdminData {
 
 type TabKey = keyof AdminData
 
-// ── Config onglets ──────────────────────────────────────────────────────────
+// ── Config onglets 
 
 const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: 'statuts',    label: 'Statuts',    icon: <Shield size={15} /> },
@@ -42,7 +42,7 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: 'diplomes',   label: 'Diplômes',   icon: <GraduationCap size={15} /> },
 ]
 
-// ── Style de base ───────────────────────────────────────────────────────────
+// ── Style de base 
 
 const inp: React.CSSProperties = {
   flex: 1, padding: '8px 12px',
@@ -57,7 +57,7 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.6px', marginBottom: '5px', display: 'block',
 }
 
-// ── Composant principal ─────────────────────────────────────────────────────
+// ── Composant principal 
 
 export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [activeTab, setActiveTab]   = useState<TabKey>('statuts')
@@ -181,7 +181,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     loadTab(activeTab)
   }, [activeTab])
 
-  // ── Ajout ──────────────────────────────────────────────────────────────────
+  // ── Ajout 
 
   const addItem = async () => {
     setSaving(true)
@@ -251,7 +251,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
   }
 
-  // ── supression ────────────────────────────────────────────────────────────
+  // ── supression 
 
   const removeItem = async (id: number) => {
     if (!confirm('Voulez-vous vraiment supprimer cet élément ?')) return
@@ -274,7 +274,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const items = data[activeTab] as any[]
   const tab   = TABS.find(t => t.key === activeTab)!
 
-  // ── Rendu formulaire d'ajout selon l'onglet ────────────────────────────────
+  // ── Rendu formulaire d'ajout selon l'onglet 
 
   const renderForm = () => {
     // Direction : nom + sigle + siège + faritany
@@ -454,7 +454,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     </button>
   )
 
-  // ── Rendu d'un item de la liste selon l'onglet ─────────────────────────────
+  // ── Rendu d'un item de la liste selon l'onglet 
 
   const renderItemMeta = (item: any) => {
     if (activeTab === 'directions') {
@@ -688,7 +688,7 @@ export const AdminModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   )
 }
 
-// ── Helper badge ────────────────────────────────────────────────────────────
+// ── Helper badge 
 const badge = (color: string): React.CSSProperties => ({
   padding: '2px 10px', borderRadius: '20px',
   background: color + '18', color,

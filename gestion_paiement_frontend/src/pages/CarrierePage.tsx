@@ -32,7 +32,7 @@ export const CarrierePage: React.FC = () => {
   const [total, setTotal]           = useState(0)
   const [error, setError]           = useState<string | null>(null)
 
-  // ── Chargement ────────────────────────────────────────────────────────────
+  // ── Chargement 
   const loadCarrieres = async () => {
     setLoading(true)
     setError(null)
@@ -53,7 +53,7 @@ export const CarrierePage: React.FC = () => {
 
   useEffect(() => { loadCarrieres() }, [page])
 
-  // ── Filtrage local ────────────────────────────────────────────────────────
+  // ── Filtrage local 
   const filtered = carrieres.filter(c => {
     const q = search.toLowerCase()
     return (
@@ -66,7 +66,7 @@ export const CarrierePage: React.FC = () => {
     )
   })
 
-  // ── Sauvegarde ────────────────────────────────────────────────────────────
+  // ── Sauvegarde 
   const handleSave = async (data: CarrierePayload) => {
     try {
       if (editCarriere) {
@@ -91,7 +91,7 @@ export const CarrierePage: React.FC = () => {
     }
   }
 
-  // ── Suppression ───────────────────────────────────────────────────────────
+  // ── Suppression 
   const handleDelete = async (id: number) => {
     if (!confirm('Supprimer cette carrière ?')) return
     try {
