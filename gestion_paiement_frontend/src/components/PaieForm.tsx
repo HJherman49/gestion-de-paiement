@@ -81,15 +81,16 @@ const normalizePaie = (paie: PaieFromAPI): PaiePayload => ({
   Id_enfant:       paie.Id_enfant == null ? undefined : safeNumber(paie.Id_enfant),
 })
 
-// num 
 const NumField = React.memo<{
   label: string;
   field: keyof PaiePayload;
   value: number | undefined;
   onChange: (field: keyof PaiePayload, value: string) => void;
   required?: boolean;
-}>(({ label, field, value, onChange, required = false }) => {
+  disabled?: boolean;          // ← Nouveau prop
+}>(({ label, field, value, onChange, required = false, disabled = false }) => {
   const displayValue = (value === 0 || value == null) ? '' : String(value);
+
   return (
     <div className="pf-field">
       <label className="pf-label">
@@ -103,12 +104,16 @@ const NumField = React.memo<{
         placeholder="0"
         min="0"
         step="0.01"
+        required={required}
+        disabled={disabled}                    // ← Ajout
       />
     </div>
   );
 });
 
 NumField.displayName = 'NumField';
+
+
 
 
 export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave, onClose }) => {
@@ -118,7 +123,8 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   const [carrieres, setCarrieres] = useState<CarriereFromAPI[]>([])
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
-  
+
+  const isEditMode = Boolean(paie)
 
   const stepIndex = STEPS.findIndex(s => s.key === step)
 
@@ -193,6 +199,12 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   const handleSubmit = async () => {
     if (!form.Id_agent) { setError('Veuillez sélectionner un agent'); setStep('identification'); return }
     if (!form.mois || !form.annee) { setError('Mois et année sont obligatoires'); setStep('identification'); return }
+
+    if (isEditMode && (form.prime === 0 || form.prime_speciale === 0 || form.prime_fin_annee === 0)) {
+      setError('Pendant la modification, toutes les primes doivent être remplies.');
+      setStep('remuneration');
+      return
+    }
 
     setSaving(true)
     setError(null)
@@ -374,16 +386,48 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                     </p>
                   )}
                 </div>
-                <NumField label="Indice"              field="Indice"         value={form.Indice} onChange={handleNumChange} />
-                <NumField label="Prime"               field="prime"          value={form.prime} onChange={handleNumChange} />
-                <NumField label="Prime spéciale"      field="prime_speciale" value={form.prime_speciale} onChange={handleNumChange} />
-                <NumField label="Prime fin d'année"   field="prime_fin_annee" value={form.prime_fin_annee} onChange={handleNumChange} />
-                <NumField label="Allocation"          field="alloc"          value={form.alloc} onChange={handleNumChange} />
-                <NumField label="Logement"            field="logement"       value={form.logement} onChange={handleNumChange} />
-                <NumField label="Scolarité"           field="scola"          value={form.scola} onChange={handleNumChange} />
-                <NumField label="Remboursement"       field="remboursement"  value={form.remboursement} onChange={handleNumChange} />
-                <NumField label="Rappel"              field="rappel"         value={form.rappel} onChange={handleNumChange} />
+
+                <NumField label="Indice" field="Indice" value={form.Indice} onChange={handleNumChange} />
+
+                {/* Primes : désactivées en création */}
+                <NumField 
+                  label="Prime" 
+                  field="prime" 
+                  value={form.prime} 
+                  onChange={handleNumChange} 
+                  required={isEditMode}
+                  disabled={!isEditMode}   // ← Ajout
+                />
+                <NumField 
+                  label="Prime spéciale" 
+                  field="prime_speciale" 
+                  value={form.prime_speciale} 
+                  onChange={handleNumChange} 
+                  required={isEditMode}
+                  disabled={!isEditMode}   // ← Ajout
+                />
+                <NumField 
+                  label="Prime fin d'année" 
+                  field="prime_fin_annee" 
+                  value={form.prime_fin_annee} 
+                  onChange={handleNumChange} 
+                  required={isEditMode}
+                  disabled={!isEditMode}   // ← Ajout
+                />
+
+                <NumField label="Allocation" field="alloc" value={form.alloc} onChange={handleNumChange} />
+                <NumField label="Logement" field="logement" value={form.logement} onChange={handleNumChange} />
+                <NumField label="Scolarité" field="scola" value={form.scola} onChange={handleNumChange} />
+                <NumField label="Remboursement" field="remboursement" value={form.remboursement} onChange={handleNumChange} />
+                <NumField label="Rappel" field="rappel" value={form.rappel} onChange={handleNumChange} />
               </div>
+
+              {/* Message explicatif en mode création */}
+              {!isEditMode && (
+                <div className="pf-info-box" style={{ marginTop: '12px' }}>
+                  <small>ℹ️ Les primes ne sont saisissables que lors de la modification du bulletin.</small>
+                </div>
+              )}
 
               {/* Récap brut */}
               <div className="pf-recap pf-recap--green">
