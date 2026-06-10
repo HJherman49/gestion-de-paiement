@@ -410,3 +410,43 @@
   .pp-modal { width: 95vw; }
   .pp-modal-grid { grid-template-columns: 1fr; }
 }
+
+
+.pp-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 16px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 4px;
+}
+
+.pp-tab {
+  padding: 10px 16px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pp-tab:hover {
+  background: #f1f3f5;
+}
+
+.pp-tab.active {
+  background: white;
+  border-color: #1a3c6b;
+  border-bottom-color: white;
+  color: #1a3c6b;
+  font-weight: 600;
+}
+
+.pp-tab-count {
+  margin-left: 6px;
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: normal;
+}

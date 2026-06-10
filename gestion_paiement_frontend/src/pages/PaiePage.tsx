@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from 'react'
-import { Plus, Eye, Pencil, Trash2, Search, FileText, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import React, { useState, useEffect, useMemo } from 'react'
+import { Plus, Eye, Pencil, Trash2, Search, FileText, Download } from 'lucide-react'
 import { getPaies, createPaie, updatePaie, deletePaie, type PaieFromAPI, type PaiePayload } from '../services/paieService'
 import { PaieForm } from '../components/PaieForm'
 import '../styles/pages/PaiePage.css'
 import { exportPdf } from '../axios'
 
-const MOIS = [
-  'Jan','Fév','Mar','Avr','Mai','Juin',
-  'Juil','Aoû','Sep','Oct','Nov','Déc',
-]
+const MOIS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc']
 
 const MODE_COLORS: Record<string, { bg: string; color: string }> = {
   Virement:  { bg: '#1a6b3c18', color: '#1a6b3c' },
   Espèces:   { bg: '#8c6d1a18', color: '#8c6d1a' },
   Chèque:    { bg: '#1a4d8c18', color: '#1a4d8c' },
+}
+
+// Type pour les groupes d'onglets
+interface PaieGroup {
+  key: string
+  label: string
+  mois?: number
+  annee?: number
+  paies: PaieFromAPI[]
 }
 
 export const PaiePage: React.FC = () => {
@@ -28,16 +34,16 @@ export const PaiePage: React.FC = () => {
   const [total, setTotal]         = useState(0)
   const [error, setError]         = useState<string | null>(null)
 
-  // ── Chargement 
+  const [activeTab, setActiveTab] = useState<string>('all')
+
   const loadPaies = async () => {
     setLoading(true)
     setError(null)
     try {
       const res = await getPaies({ page, per_page: 15 })
-      // Votre PaieResource::collection → Laravel wraps in { data: [...], meta: {...} } ou { data: [...] }
-      const raw = res.data.data ?? res.data ?? []
+      const raw = res.data?.data ?? res.data ?? []
       setPaies(raw)
-      if (res.data.meta) {
+      if (res.data?.meta) {
         setLastPage(res.data.meta.last_page ?? 1)
         setTotal(res.data.meta.total ?? raw.length)
       }
@@ -50,19 +56,68 @@ export const PaiePage: React.FC = () => {
 
   useEffect(() => { loadPaies() }, [page])
 
-  // ── Filtrage local 
-  const filtered = paies.filter(p => {
-    const q = search.toLowerCase()
-    return (
-      p.agent?.nom?.toLowerCase().includes(q) ||
-      p.agent?.prenoms?.toLowerCase().includes(q) ||
-      p.agent?.num_matricule?.toLowerCase().includes(q) ||
-      String(p.mois).includes(q) ||
-      String(p.annee).includes(q)
-    )
-  })
+  // Regroupement avec typage correct
+  const groupedPaies = useMemo<PaieGroup[]>(() => {
+    let result = [...paies]
 
-  // ── Sauvegarde 
+    // Filtre recherche
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      result = result.filter(p =>
+        p.agent?.nom?.toLowerCase().includes(q) ||
+        p.agent?.prenoms?.toLowerCase().includes(q) ||
+        p.agent?.num_matricule?.toLowerCase().includes(q)
+      )
+    }
+
+    const groups: Record<string, PaieGroup> = {}
+
+    result.forEach(paie => {
+      const key = `${paie.annee}-${String(paie.mois).padStart(2, '0')}`
+      const label = `${MOIS[paie.mois - 1]} ${paie.annee}`
+
+      if (!groups[key]) {
+        groups[key] = {
+          key,
+          label,
+          mois: paie.mois,
+          annee: paie.annee,
+          paies: []
+        }
+      }
+      groups[key].paies.push(paie)
+    })
+
+    const sortedGroups = Object.values(groups).sort((a, b) => 
+      (b.annee ?? 0) - (a.annee ?? 0) || (b.mois ?? 0) - (a.mois ?? 0)
+    )
+
+    const allGroup: PaieGroup = { 
+      key: 'all', 
+      label: 'Tous les bulletins', 
+      paies: result 
+    }
+
+    return [allGroup, ...sortedGroups]
+  }, [paies, search])
+
+  const currentGroup = groupedPaies.find(g => g.key === activeTab) || groupedPaies[0]
+
+  const calculateNet = (p: PaieFromAPI): number => {
+    const brut = (p.salaire_brut ?? 0) +
+                 (p.prime ?? 0) +
+                 (p.prime_speciale ?? 0) +
+                 (p.prime_fin_annee ?? 0) +
+                 (p.alloc ?? 0) +
+                 (p.logement ?? 0) +
+                 (p.scola ?? 0) +
+                 (p.remboursement ?? 0) +
+                 (p.rappel ?? 0)
+
+    const deductions = (p.IGR ?? 0) + (p.PA ?? 0)
+    return brut - deductions
+  }
+
   const handleSave = async (data: PaiePayload) => {
     if (editPaie) {
       await updatePaie(editPaie.Id_paie, data)
@@ -76,7 +131,6 @@ export const PaiePage: React.FC = () => {
     setEditPaie(null)
   }
 
-  // ── Suppression 
   const handleDelete = async (id: number) => {
     if (!confirm('Supprimer ce bulletin de paie ?')) return
     try {
@@ -88,12 +142,18 @@ export const PaiePage: React.FC = () => {
     }
   }
 
-  const openEdit = (p: PaieFromAPI) => { setEditPaie(p); setShowForm(true) }
-  const openAdd  = () => { setEditPaie(null); setShowForm(true) }
+  const openEdit = (p: PaieFromAPI) => {
+    setEditPaie(p)
+    setShowForm(true)
+  }
+
+  const openAdd = () => {
+    setEditPaie(null)
+    setShowForm(true)
+  }
 
   return (
     <div className="pp-page">
-
       {/* Header */}
       <div className="pp-header">
         <div>
@@ -108,10 +168,8 @@ export const PaiePage: React.FC = () => {
             <Plus size={15} /> Nouveau bulletin
           </button>
         </div>
-
       </div>
 
-      {/* Erreur */}
       {error && (
         <div className="pp-alert">
           ⚠ {error}
@@ -126,118 +184,92 @@ export const PaiePage: React.FC = () => {
           <input
             type="text"
             className="pp-search-input"
-            placeholder="Rechercher par agent, mois, année..."
+            placeholder="Rechercher par agent, matricule..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
       </div>
 
+      {/* Onglets */}
+      <div className="pp-tabs">
+        {groupedPaies.map(group => (
+          <button
+            key={group.key}
+            className={`pp-tab ${activeTab === group.key ? 'active' : ''}`}
+            onClick={() => setActiveTab(group.key)}
+          >
+            {group.label}
+            <span className="pp-tab-count">({group.paies.length})</span>
+          </button>
+        ))}
+      </div>
+
       {/* Tableau */}
       <div className="pp-table-wrapper">
-        <table className="pp-table">
-          <thead>
-            <tr>
-              {['#', 'Agent', 'Période', 'Salaire brut', 'IGR', 'PA', 'Net à payer', 'Mode', 'Actions'].map(h => (
-                <th key={h}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={9} className="pp-empty"><span className="pp-spinner" /> Chargement...</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={9} className="pp-empty">Aucun bulletin trouvé</td></tr>
-            ) : filtered.map((p, i) => {
-              const net = 
-                      ((p.salaire_brut ?? 0) +
-                      (p.prime ?? 0) +
-                      (p.prime_speciale ?? 0) +
-                      (p.prime_fin_annee ?? 0) +
-                      (p.alloc ?? 0) +
-                      (p.logement ?? 0) +
-                      (p.scola ?? 0) +
-                      (p.remboursement ?? 0) +
-                      (p.rappel ?? 0))
-                      -
-                      ((p.IGR ?? 0) + (p.PA ?? 0))
-              const modeColor = MODE_COLORS[p.mode_paie] ?? { bg: '#f0f0f0', color: '#666' }
-              return (
-                <tr key={p.Id_paie} className={`pp-row ${i % 2 === 0 ? 'pp-row-even' : 'pp-row-odd'}`}>
-                  <td><span className="pp-id">#{p.Id_paie}</span></td>
-                  <td>
-                    {p.agent ? (
-                      <>
-                        <div className="pp-agent-name">{p.agent.civilite} {p.agent.nom}</div>
-                        <div className="pp-agent-mat">{p.agent.num_matricule}</div>
-                      </>
-                    ) : <span className="pp-cell-gray">—</span>}
-                  </td>
-                  <td>
-                    <span className="pp-periode">{MOIS[p.mois - 1]} {p.annee}</span>
-                  </td>
-                  <td className="pp-cell-num">{(p.salaire_brut ?? 0).toLocaleString('fr-MG')} Ar</td>
-                  <td className="pp-cell-red">- {(p.IGR ?? 0).toLocaleString('fr-MG')} Ar</td>
-                  <td className="pp-cell-red">- {(p.PA ?? 0).toLocaleString('fr-MG')} Ar</td>
-                  <td>
-                    <span className="pp-net">{net.toLocaleString('fr-MG')} Ar</span>
-                  </td>
-                  <td>
-                    <span className="pp-mode" style={{ background: modeColor.bg, color: modeColor.color }}>
-                      {p.mode_paie}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="pp-actions">
-                      <button className="pp-icon-btn" title="Voir" onClick={() => setViewPaie(p)}>
-                        <Eye size={13} />
-                      </button>
-                      <button className="pp-icon-btn pp-icon-btn--edit" title="Modifier" onClick={() => openEdit(p)}>
-                        <Pencil size={13} />
-                      </button>
-                      <button className="pp-icon-btn pp-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(p.Id_paie)}>
-                        <Trash2 size={13} />
-                      </button>
-                      <button className="ap-btn-secondary" title="Exporter ce bulletin" onClick={() => exportPdf(p.Id_paie)}>
-                        <Download size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        {loading ? (
+          <div className="pp-empty"><span className="pp-spinner" /> Chargement...</div>
+        ) : currentGroup.paies.length === 0 ? (
+          <div className="pp-empty">Aucun bulletin trouvé pour cette période</div>
+        ) : (
+          <table className="pp-table">
+            <thead>
+              <tr>
+                {['#', 'Agent', 'Salaire brut', 'IGR', 'PA', 'Net à payer', 'Mode', 'Actions'].map(h => (
+                  <th key={h}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {currentGroup.paies.map((p, i) => {   
+                const net = calculateNet(p)
+                const modeColor = MODE_COLORS[p.mode_paie] ?? { bg: '#f0f0f0', color: '#666' }
 
-        {/* Pagination */}
-        {lastPage > 1 && (
-          <div className="pp-pagination">
-            <span className="pp-pagination-info">Page {page} sur {lastPage} · {total} bulletins</span>
-            <div className="pp-pagination-buttons">
-              <button className="pp-page-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} title="Précédent">
-                <ChevronLeft size={14} />
-              </button>
-              {Array.from({ length: lastPage }, (_, i) => i + 1)
-                .filter(p => p === 1 || p === lastPage || Math.abs(p - page) <= 1)
-                .map((p, idx, arr) => (
-                  <React.Fragment key={p}>
-                    {idx > 0 && arr[idx - 1] !== p - 1 && <span className="pp-ellipsis">…</span>}
-                    <button
-                      className={`pp-page-btn ${p === page ? 'active' : ''}`}
-                      onClick={() => setPage(p)}
-                    >{p}</button>
-                  </React.Fragment>
-                ))
-              }
-              <button className="pp-page-btn" onClick={() => setPage(p => Math.min(lastPage, p + 1))} disabled={page === lastPage} title="Suivant">
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
+                return (
+                  <tr key={p.Id_paie} className={`pp-row ${i % 2 === 0 ? 'pp-row-even' : 'pp-row-odd'}`}>
+                    <td><span className="pp-id">#{p.Id_paie}</span></td>
+                    <td>
+                      {p.agent ? (
+                        <>
+                          <div className="pp-agent-name">{p.agent.civilite} {p.agent.nom}</div>
+                          <div className="pp-agent-mat">{p.agent.num_matricule}</div>
+                        </>
+                      ) : <span className="pp-cell-gray">—</span>}
+                    </td>
+                    <td className="pp-cell-num">{(p.salaire_brut ?? 0).toLocaleString('fr-MG')} Ar</td>
+                    <td className="pp-cell-red">- {(p.IGR ?? 0).toLocaleString('fr-MG')} Ar</td>
+                    <td className="pp-cell-red">- {(p.PA ?? 0).toLocaleString('fr-MG')} Ar</td>
+                    <td><span className="pp-net">{net.toLocaleString('fr-MG')} Ar</span></td>
+                    <td>
+                      <span className="pp-mode" style={{ background: modeColor.bg, color: modeColor.color }}>
+                        {p.mode_paie}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="pp-actions">
+                        <button className="pp-icon-btn" title="Voir" onClick={() => setViewPaie(p)}>
+                          <Eye size={13} />
+                        </button>
+                        <button className="pp-icon-btn pp-icon-btn--edit" title="Modifier" onClick={() => openEdit(p)}>
+                          <Pencil size={13} />
+                        </button>
+                        <button className="pp-icon-btn pp-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(p.Id_paie)}>
+                          <Trash2 size={13} />
+                        </button>
+                        <button className="ap-btn-secondary" title="Exporter" onClick={() => exportPdf(p.Id_paie)}>
+                          <Download size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         )}
       </div>
 
-      {/* Modal détail bulletin */}
+      {/* Modal Détail */}
       {viewPaie && (
         <div className="pp-modal-overlay">
           <div className="pp-modal">
@@ -250,71 +282,62 @@ export const PaiePage: React.FC = () => {
                   </div>
                   <div className="pp-modal-sub">
                     {viewPaie.agent
-                      ? `${viewPaie.agent.civilite} ${viewPaie.agent.nom} ${viewPaie.agent.prenoms} · ${viewPaie.agent.num_matricule}`
+                      ? `${viewPaie.agent.civilite} ${viewPaie.agent.nom} ${viewPaie.agent.prenoms || ''} · ${viewPaie.agent.num_matricule}`
                       : '—'}
                   </div>
                 </div>
               </div>
-              <button className="pp-modal-close" onClick={() => setViewPaie(null)} title="Fermer">×</button>
+              <button className="pp-modal-close" onClick={() => setViewPaie(null)}>×</button>
             </div>
 
             <div className="pp-modal-body">
-              {/* Rémunérations */}
               <p className="pp-modal-section-title">Rémunérations</p>
               <div className="pp-modal-grid">
                 {[
-                  { label: 'Salaire brut',     value: viewPaie.salaire_brut },
-                  { label: 'Indice',            value: viewPaie.Indice },
-                  { label: 'Prime',             value: viewPaie.prime },
-                  { label: 'Prime spéciale',    value: viewPaie.prime_speciale },
-                  { label: 'Prime fin d\'année',value: viewPaie.prime_fin_annee },
-                  { label: 'Allocation',        value: viewPaie.alloc },
-                  { label: 'Logement',          value: viewPaie.logement },
-                  { label: 'Scolarité',         value: viewPaie.scola },
-                  { label: 'Remboursement',     value: viewPaie.remboursement },
-                  { label: 'Rappel',            value: viewPaie.rappel },
+                  { label: 'Salaire brut', value: viewPaie.salaire_brut },
+                  { label: 'Indice', value: viewPaie.Indice },
+                  { label: 'Prime', value: viewPaie.prime },
+                  { label: 'Prime spéciale', value: viewPaie.prime_speciale },
+                  { label: "Prime fin d'année", value: viewPaie.prime_fin_annee },
+                  { label: 'Allocation', value: viewPaie.alloc },
+                  { label: 'Logement', value: viewPaie.logement },
+                  { label: 'Scolarité', value: viewPaie.scola },
+                  { label: 'Remboursement', value: viewPaie.remboursement },
+                  { label: 'Rappel', value: viewPaie.rappel },
                 ].map(({ label, value }) => (
                   <div key={label} className="pp-modal-field">
                     <div className="pp-modal-field-label">{label}</div>
-                    <div className="pp-modal-field-value">{value?.toLocaleString('fr-MG') ?? 0} Ar</div>
+                    <div className="pp-modal-field-value">{(value ?? 0).toLocaleString('fr-MG')} Ar</div>
                   </div>
                 ))}
               </div>
 
-              {/* Déductions */}
               <p className="pp-modal-section-title" style={{ marginTop: 16 }}>Déductions</p>
               <div className="pp-modal-grid">
                 <div className="pp-modal-field">
                   <div className="pp-modal-field-label">IGR</div>
-                  <div className="pp-modal-field-value red">- {viewPaie.IGR?.toLocaleString('fr-MG') ?? 0} Ar</div>
+                  <div className="pp-modal-field-value red">- {(viewPaie.IGR ?? 0).toLocaleString('fr-MG')} Ar</div>
                 </div>
                 <div className="pp-modal-field">
                   <div className="pp-modal-field-label">PA / CNAPS</div>
-                  <div className="pp-modal-field-value red">- {viewPaie.PA?.toLocaleString('fr-MG') ?? 0} Ar</div>
+                  <div className="pp-modal-field-value red">- {(viewPaie.PA ?? 0).toLocaleString('fr-MG')} Ar</div>
                 </div>
               </div>
 
-              {/* Net */}
               <div className="pp-modal-net">
                 <span>Net à payer</span>
                 <span className="pp-modal-net-amount">
-                  {(
-                    (viewPaie.salaire_brut + viewPaie.prime + viewPaie.prime_speciale +
-                     viewPaie.prime_fin_annee + viewPaie.alloc + viewPaie.logement +
-                     viewPaie.scola + viewPaie.remboursement + viewPaie.rappel)
-                    - (viewPaie.IGR + viewPaie.PA)
-                  ).toLocaleString('fr-MG')} Ar
+                  {calculateNet(viewPaie).toLocaleString('fr-MG')} Ar
                 </span>
               </div>
 
-              {/* Infos complémentaires */}
               <p className="pp-modal-section-title" style={{ marginTop: 16 }}>Informations</p>
               <div className="pp-modal-grid">
                 {[
                   { label: 'Mode de paie', value: viewPaie.mode_paie },
                   { label: 'Date d\'effet', value: viewPaie.date_effet || '—' },
-                  { label: 'Chapitre',     value: viewPaie.chap || '—' },
-                  { label: 'Article',      value: viewPaie.art || '—' },
+                  { label: 'Chapitre', value: viewPaie.chap || '—' },
+                  { label: 'Article', value: viewPaie.art || '—' },
                 ].map(({ label, value }) => (
                   <div key={label} className="pp-modal-field">
                     <div className="pp-modal-field-label">{label}</div>
@@ -334,7 +357,6 @@ export const PaiePage: React.FC = () => {
         </div>
       )}
 
-      {/* Formulaire */}
       {showForm && (
         <PaieForm
           paie={editPaie}

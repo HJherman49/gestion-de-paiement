@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { X, Save, DollarSign, User, FileText, Calendar, Loader2 } from 'lucide-react'
 import type { PaiePayload, PaieFromAPI } from '../services/paieService'
+import { getCarriereAgent, type CarriereFromAPI } from '../services/carriereService'
 import api from '../services/api'
 
 interface Agent {
@@ -114,6 +115,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   const [step, setStep]       = useState<Section>('identification')
   const [form, setForm]       = useState<PaiePayload>({ ...EMPTY, Id_agent: defaultAgentId ?? 0 })
   const [agents, setAgents]   = useState<Agent[]>([])
+  const [carrieres, setCarrieres] = useState<CarriereFromAPI[]>([])
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
   
@@ -136,8 +138,18 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
     }
   }, [paie, defaultAgentId])
 
+  useEffect(() => {
+    if (form.Id_agent) {
+      loadAgentCarrieres(form.Id_agent)
+    }
+  }, [form.Id_agent])
+
   const set = (key: keyof PaiePayload, value: any) =>
     setForm(prev => ({ ...prev, [key]: value }))
+
+  const handleAgentChange = (Id_agent: number) => {
+    set('Id_agent', Id_agent)
+  }
 
   const handleNumChange = useCallback((key: keyof PaiePayload, value: string) => {
     set(key, value === '' ? 0 : parseFloat(value) || 0);
@@ -145,6 +157,30 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
 
   const setNum = (key: keyof PaiePayload, value: string) =>
     set(key, value === '' ? 0 : parseFloat(value) || 0)
+
+  const loadAgentCarrieres = async (Id_agent: number) => {
+    try {
+      const res = await getCarriereAgent(Id_agent)
+      const data = res.data?.data ?? res.data ?? []
+      setCarrieres(Array.isArray(data) ? data : [data])
+
+      const carre = (Array.isArray(data) ? data : [data])
+        .filter((c): c is CarriereFromAPI => !!c)
+        .sort((a, b) => (b.Id_carriere ?? 0) - (a.Id_carriere ?? 0))[0]
+
+      if (carre?.bareme?.salaire_base) {
+        set('salaire_brut', Number(carre.bareme.salaire_base))
+      }
+    } catch (err) {
+      setCarrieres([])
+    }
+  }
+
+  const selectedCarriere = useMemo(() => {
+    if (!form.Id_agent) return undefined
+    return carrieres
+      .sort((a, b) => (b.Id_carriere ?? 0) - (a.Id_carriere ?? 0))[0]
+  }, [carrieres, form.Id_agent])
 
   // ── Totaux calculés 
   const totalBrut = form.salaire_brut + form.prime + form.prime_speciale +
@@ -267,7 +303,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                 <select
                   className="pf-input"
                   value={form.Id_agent || ''}
-                  onChange={e => set('Id_agent', Number(e.target.value))}
+                  onChange={e => handleAgentChange(Number(e.target.value))}
                   disabled={!!defaultAgentId}
                   title="Agent"
                 >
@@ -322,7 +358,22 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
             <div className="pf-section">
               <p className="pf-section-title">Éléments de rémunération</p>
               <div className="pf-grid-2">
-                <NumField label="Salaire brut"       field="salaire_brut"    value={form.salaire_brut} onChange={handleNumChange} required />
+                <div className="pf-field">
+                  <label className="pf-label">Salaire brut</label>
+                  <input
+                    type="number"
+                    className="pf-input"
+                    value={form.salaire_brut ? String(form.salaire_brut) : ''}
+                    disabled
+                    placeholder={selectedCarriere ? 'Rempli depuis le barème' : 'Sélectionner un agent'}
+                    title="Le salaire brut est défini automatiquement depuis le barème de la carrière"
+                  />
+                  {selectedCarriere?.bareme && (
+                    <p className="pf-hint">
+                      Barème {selectedCarriere.bareme.indice} — {Number(selectedCarriere.bareme.salaire_base).toLocaleString('fr-MG')} Ar
+                    </p>
+                  )}
+                </div>
                 <NumField label="Indice"              field="Indice"         value={form.Indice} onChange={handleNumChange} />
                 <NumField label="Prime"               field="prime"          value={form.prime} onChange={handleNumChange} />
                 <NumField label="Prime spéciale"      field="prime_speciale" value={form.prime_speciale} onChange={handleNumChange} />
