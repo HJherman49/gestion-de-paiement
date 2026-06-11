@@ -17,6 +17,7 @@ interface PaieFormProps {
   defaultAgentId?: number
   onSave: (data: PaiePayload) => Promise<void>
   onClose: () => void
+  initialStep?: Section
 }
 
 type Section = 'identification' | 'remuneration' | 'deductions' | 'complement'
@@ -116,8 +117,8 @@ NumField.displayName = 'NumField';
 
 
 
-export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave, onClose }) => {
-  const [step, setStep]       = useState<Section>('identification')
+export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave, onClose, initialStep }) => {
+  const [step, setStep]       = useState<Section>(initialStep ?? 'identification')
   const [form, setForm]       = useState<PaiePayload>({ ...EMPTY, Id_agent: defaultAgentId ?? 0 })
   const [agents, setAgents]   = useState<Agent[]>([])
   const [carrieres, setCarrieres] = useState<CarriereFromAPI[]>([])
@@ -143,6 +144,10 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
       setForm({ ...EMPTY, Id_agent: defaultAgentId ?? 0 })
     }
   }, [paie, defaultAgentId])
+
+  useEffect(() => {
+    if (initialStep) setStep(initialStep)
+  }, [initialStep])
 
   useEffect(() => {
     if (form.Id_agent) {

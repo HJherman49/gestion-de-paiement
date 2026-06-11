@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { Plus, Eye, Pencil, Trash2, Search, FileText, Download, History, ChevronDown } from 'lucide-react'
+import { Plus, Eye, Pencil, Trash2, Search, FileText, Download, History, ChevronDown, Gift, CheckSquare, Square } from 'lucide-react'
 import { getPaies, createPaie, updatePaie, deletePaie, type PaieFromAPI, type PaiePayload } from '../services/paieService'
 import { PaieForm } from '../components/PaieForm'
 import '../styles/pages/PaiePage.css'
@@ -14,13 +14,215 @@ const MODE_COLORS: Record<string, { bg: string; color: string }> = {
   Chèque:   { bg: '#1a4d8c18', color: '#1a4d8c' },
 }
 
+const getModeClass = (mode: string) => {
+  switch (mode) {
+    case 'Virement': return 'pp-mode--virement'
+    case 'Espèces': return 'pp-mode--especes'
+    case 'Chèque': return 'pp-mode--cheque'
+    default: return ''
+  }
+}
+
 interface PaieGroup {
-  key: string
-  label: string
-  mois?: number
-  annee?: number
+  key: string; label: string
+  mois?: number; annee?: number
   paies: PaieFromAPI[]
 }
+
+interface PrimePayload {
+  prime: number
+  prime_speciale: number
+  prime_fin_annee: number
+  motif: string
+}
+
+// ── Modal Prime ───────────────────────────────────────────────────────────────
+
+const PrimeModal: React.FC<{
+  agents: PaieFromAPI[]   // 1 agent = prime individuelle, N agents = prime groupée
+  onClose: () => void
+  onApply: (ids: number[], prime: PrimePayload) => void
+}> = ({ agents, onClose, onApply }) => {
+  const [prime, setPrime] = useState('')
+  const [primeSpeciale, setPrimeSpeciale] = useState('')
+  const [primeFinAnnee, setPrimeFinAnnee] = useState('')
+  const [motif, setMotif] = useState('')
+  const [error, setError] = useState('')
+
+  const isMultiple = agents.length > 1
+
+  const toNumber = (value: string) => {
+    const parsed = parseFloat(value)
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+  }
+
+  const handleSubmit = () => {
+    const payload = {
+      prime: toNumber(prime),
+      prime_speciale: toNumber(primeSpeciale),
+      prime_fin_annee: toNumber(primeFinAnnee),
+      motif,
+    }
+
+    if (payload.prime <= 0 && payload.prime_speciale <= 0 && payload.prime_fin_annee <= 0) {
+      setError('Veuillez saisir au moins une prime valide')
+      return
+    }
+
+    onApply(agents.map(a => a.Id_paie), payload)
+    onClose()
+  }
+
+  return (
+    <div className="pp-prime-overlay">
+      <div className="pp-prime-modal">
+
+        {/* Header */}
+        <div className="pp-prime-header">
+          <div>
+            <div className="pp-prime-header-content">
+              <Gift size={16} color="rgba(255,255,255,0.7)" />
+              <h2 className="pp-prime-header-title">
+                {isMultiple ? `Prime groupée — ${agents.length} agents` : 'Prime individuelle'}
+              </h2>
+            </div>
+            <p className="pp-prime-header-subtitle">
+              {isMultiple
+                ? `La prime sera appliquée à ${agents.length} bulletin(s) sélectionné(s)`
+                : agents[0]?.agent
+                  ? `${agents[0].agent.civilite} ${agents[0].agent.nom} · ${agents[0].agent.num_matricule}`
+                  : `Bulletin #${agents[0]?.Id_paie}`
+              }
+            </p>
+          </div>
+          <button onClick={onClose} className="pp-prime-close">×</button>
+        </div>
+
+        {/* Agents sélectionnés (multi) */}
+        {isMultiple && (
+          <div className="pp-prime-agents">
+            <p className="pp-prime-agents-title">Agents concernés</p>
+            <div className="pp-prime-agents-list">
+              {agents.map(a => (
+                <span key={a.Id_paie} className="pp-prime-agent-tag">
+                  {a.agent ? `${a.agent.nom} (${a.agent.num_matricule})` : `#${a.Id_paie}`}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Formulaire */}
+        <div className="pp-prime-body">
+
+          <div>
+            <label className="pp-prime-label">Prime</label>
+            <div className="pp-prime-field">
+              <input
+                className="pp-prime-input pp-prime-input--with-suffix"
+                type="number"
+                min="0"
+                placeholder="Ex: 150000"
+                value={prime}
+                onChange={e => { setPrime(e.target.value); setError('') }}
+              />
+              <span className="pp-prime-suffix">Ar</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="pp-prime-label">Prime spéciale</label>
+            <div className="pp-prime-field">
+              <input
+                className="pp-prime-input pp-prime-input--with-suffix"
+                type="number"
+                min="0"
+                placeholder="Ex: 50000"
+                value={primeSpeciale}
+                onChange={e => { setPrimeSpeciale(e.target.value); setError('') }}
+              />
+              <span className="pp-prime-suffix">Ar</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="pp-prime-label">Prime fin d'année</label>
+            <div className="pp-prime-field">
+              <input
+                className="pp-prime-input pp-prime-input--with-suffix"
+                type="number"
+                min="0"
+                placeholder="Ex: 100000"
+                value={primeFinAnnee}
+                onChange={e => { setPrimeFinAnnee(e.target.value); setError('') }}
+              />
+              <span className="pp-prime-suffix">Ar</span>
+            </div>
+          </div>
+
+          {error && <p className="pp-prime-error">{error}</p>}
+
+          {isMultiple && (toNumber(prime) || toNumber(primeSpeciale) || toNumber(primeFinAnnee)) ? (
+            <p className="pp-prime-total">
+              Total appliqué : {(
+                (toNumber(prime) + toNumber(primeSpeciale) + toNumber(primeFinAnnee)) * agents.length
+              ).toLocaleString('fr-MG')} Ar ({agents.length} bulletin{agents.length > 1 ? 's' : ''})
+            </p>
+          ) : null}
+
+          <div className="pp-prime-note">
+            <p className="pp-prime-note-title">
+              Primes incluses dans ce modal
+            </p>
+            <ul className="pp-prime-note-list">
+              <li>Prime</li>
+              <li>Prime spéciale</li>
+              <li>Prime fin d'année</li>
+            </ul>
+          </div>
+
+          {/* Motif */}
+          <div>
+            <label className="pp-prime-label">Motif / Observation</label>
+            <textarea
+              className="pp-prime-input pp-prime-textarea"
+              placeholder="Ex: Prime de performance Q2 2026..."
+              value={motif}
+              onChange={e => setMotif(e.target.value)}
+            />
+          </div>
+
+          {/* Aperçu */}
+          {(toNumber(prime) || toNumber(primeSpeciale) || toNumber(primeFinAnnee)) > 0 && (
+            <div className="pp-prime-preview">
+              <div>
+                <p className="pp-prime-preview-title">Aperçu</p>
+                <p className="pp-prime-preview-label">Primes sélectionnées</p>
+              </div>
+              <span className="pp-prime-preview-amount">
+                + {(
+                  toNumber(prime) + toNumber(primeSpeciale) + toNumber(primeFinAnnee)
+                ).toLocaleString('fr-MG')} Ar
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="pp-prime-footer">
+          <button onClick={onClose} className="pp-prime-cancel">
+            Annuler
+          </button>
+          <button onClick={handleSubmit} className="pp-prime-submit">
+            <Gift size={14} /> Appliquer la prime
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Page principale ───────────────────────────────────────────────────────────
 
 export const PaiePage: React.FC = () => {
   const [paies, setPaies]       = useState<PaieFromAPI[]>([])
@@ -35,29 +237,29 @@ export const PaiePage: React.FC = () => {
   const [error, setError]       = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('all')
 
-  // ── Historique dropdown ──────────────────────────────────────────────────
+  // ── Sélection multi-agents ───────────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [primeTargets, setPrimeTargets] = useState<PaieFromAPI[] | null>(null) // null = fermé
+
+  // ── Historique ───────────────────────────────────────────────────────────
   const [showHistorique, setShowHistorique] = useState(false)
   const [histAnnee, setHistAnnee]           = useState<number | null>(null)
   const historiqueRef = useRef<HTMLDivElement>(null)
 
-  // ── Mois sélectionné dans "Tous les bulletins" ──────────────────────────
   const currentYear = new Date().getFullYear()
   const [filterMois, setFilterMois] = useState<number | null>(null)
 
-  // Fermer dropdown si clic dehors
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (historiqueRef.current && !historiqueRef.current.contains(e.target as Node)) {
+      if (historiqueRef.current && !historiqueRef.current.contains(e.target as Node))
         setShowHistorique(false)
-      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   const loadPaies = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
       const res = await getPaies({ page, per_page: 15 })
       const raw = res.data?.data ?? res.data ?? []
@@ -66,16 +268,12 @@ export const PaiePage: React.FC = () => {
         setLastPage(res.data.meta.last_page ?? 1)
         setTotal(res.data.meta.total ?? raw.length)
       }
-    } catch {
-      setError('Impossible de charger les bulletins de paie')
-    } finally {
-      setLoading(false)
-    }
+    } catch { setError('Impossible de charger les bulletins de paie') }
+    finally { setLoading(false) }
   }
 
   useEffect(() => { loadPaies() }, [page])
 
-  // ── Groupement par mois/année ────────────────────────────────────────────
   const groupedPaies = useMemo<PaieGroup[]>(() => {
     let result = [...paies]
     if (search.trim()) {
@@ -86,78 +284,71 @@ export const PaiePage: React.FC = () => {
         p.agent?.num_matricule?.toLowerCase().includes(q)
       )
     }
-
-    const groups: Record<string, PaieGroup> = {}
-    result.forEach(paie => {
-      const key   = `${paie.annee}-${String(paie.mois).padStart(2, '0')}`
-      const label = `${MOIS_COURTS[paie.mois - 1]} ${paie.annee}`
-      if (!groups[key]) groups[key] = { key, label, mois: paie.mois, annee: paie.annee, paies: [] }
-      groups[key].paies.push(paie)
-    })
-
-    const allGroup: PaieGroup = { key: 'all', label: 'Tous les bulletins', paies: result }
-    return [allGroup]
+    return [{ key: 'all', label: 'Tous les bulletins', paies: result }]
   }, [paies, search])
 
-  // ── Années disponibles pour l'historique ────────────────────────────────
   const anneesDisponibles = useMemo(() => {
-    const set = new Set(paies.map(p => p.annee))
-    return Array.from(set).sort((a, b) => b - a)
+    return [...new Set(paies.map(p => p.annee))].sort((a, b) => b - a)
   }, [paies])
 
-  // ── Données affichées selon onglet + filtre mois ─────────────────────────
-  const currentGroup = groupedPaies.find(g => g.key === activeTab) ?? groupedPaies[0]
+  const currentGroup  = groupedPaies[0]
   const displayedPaies = useMemo(() => {
-    if (activeTab === 'all' && filterMois !== null) {
-      return currentGroup.paies.filter(p => p.mois === filterMois)
-    }
+    if (filterMois !== null) return currentGroup.paies.filter(p => p.mois === filterMois)
     return currentGroup.paies
-  }, [currentGroup, activeTab, filterMois])
+  }, [currentGroup, filterMois])
 
-  const calculateNet = (p: PaieFromAPI): number => {
+  const calculateNet = (p: PaieFromAPI) => {
     const brut = (p.salaire_brut ?? 0) + (p.prime ?? 0) + (p.prime_speciale ?? 0) +
                  (p.prime_fin_annee ?? 0) + (p.alloc ?? 0) + (p.logement ?? 0) +
                  (p.scola ?? 0) + (p.remboursement ?? 0) + (p.rappel ?? 0)
     return brut - (p.IGR ?? 0) - (p.PA ?? 0)
   }
 
-  const handleSave = async (data: PaiePayload) => {
-    if (editPaie) {
-      await updatePaie(editPaie.Id_paie, data)
-      alert('Bulletin modifié avec succès')
-    } else {
-      await createPaie(data)
-      alert('Bulletin créé avec succès')
-    }
+  // ── Sélection ──────────────────────────────────────────────────────────
+  const toggleSelect = (id: number) =>
+    setSelectedIds(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s })
+
+  const toggleAll = () => {
+    if (selectedIds.size === displayedPaies.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(displayedPaies.map(p => p.Id_paie)))
+  }
+
+  const allSelected  = displayedPaies.length > 0 && selectedIds.size === displayedPaies.length
+  const someSelected = selectedIds.size > 0 && !allSelected
+
+  // ── Appliquer prime (mock — à brancher sur API) ─────────────────────────
+  const handleApplyPrime = (ids: number[], prime: PrimePayload) => {
+    // TODO: appeler l'API pour chaque id
+    // ex: ids.forEach(id => updatePaie(id, { prime: existingPrime + prime.montant }))
+    const parts = [
+      prime.prime > 0 ? `Prime : ${prime.prime.toLocaleString('fr-MG')} Ar` : null,
+      prime.prime_speciale > 0 ? `Prime spéciale : ${prime.prime_speciale.toLocaleString('fr-MG')} Ar` : null,
+      prime.prime_fin_annee > 0 ? `Prime fin d'année : ${prime.prime_fin_annee.toLocaleString('fr-MG')} Ar` : null,
+    ].filter(Boolean)
+
+    alert(`✅ Primes appliquées à ${ids.length} bulletin(s).\n\n${parts.join('\n')}\n${prime.motif ? `\nMotif : ${prime.motif}` : ''}\n\n(À connecter sur l'API)`)
+    setSelectedIds(new Set())
     loadPaies()
-    setShowForm(false)
-    setEditPaie(null)
+  }
+
+  const handleSave = async (data: PaiePayload) => {
+    if (editPaie) { await updatePaie(editPaie.Id_paie, data); alert('Bulletin modifié') }
+    else          { await createPaie(data); alert('Bulletin créé') }
+    loadPaies(); setShowForm(false); setEditPaie(null)
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Supprimer ce bulletin de paie ?')) return
-    try {
-      await deletePaie(id)
-      alert('Bulletin supprimé')
-      loadPaies()
-    } catch (err: any) {
-      alert(err.response?.data?.message ?? 'Erreur lors de la suppression')
-    }
+    if (!confirm('Supprimer ce bulletin ?')) return
+    try { await deletePaie(id); alert('Bulletin supprimé'); loadPaies() }
+    catch (err: any) { alert(err.response?.data?.message ?? 'Erreur') }
   }
 
-  // Naviguer vers un mois précis depuis l'historique
   const goToHistorique = (annee: number, mois: number) => {
-    const key = `${annee}-${String(mois).padStart(2, '0')}`
-    const exists = groupedPaies.find(g => g.key === key)
-    if (exists) {
-      setActiveTab(key)
-    } else {
-      setActiveTab('all')
-      setFilterMois(mois)
-    }
-    setShowHistorique(false)
-    setHistAnnee(null)
+    setActiveTab('all'); setFilterMois(mois)
+    setShowHistorique(false); setHistAnnee(null)
   }
+
+  const selectedPaies = displayedPaies.filter(p => selectedIds.has(p.Id_paie))
 
   return (
     <div className="pp-page">
@@ -168,94 +359,64 @@ export const PaiePage: React.FC = () => {
           <h1 className="pp-title">Bulletins de Paie</h1>
           <p className="pp-subtitle">{total} bulletin{total > 1 ? 's' : ''} enregistré{total > 1 ? 's' : ''}</p>
         </div>
-        <div className="ap-header-actions">
+        <div className="pp-header-actions">
 
-          {/* Bouton Historique */}
-          <div ref={historiqueRef} style={{ position: 'relative' }}>
+          {/* Prime groupée — visible si sélection */}
+          {selectedIds.size > 0 && (
             <button
-              className="ap-btn-secondary"
-              onClick={() => setShowHistorique(v => !v)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => setPrimeTargets(selectedPaies)}
+              className="pp-prime-group-btn"
             >
-              <History size={14} /> Historique <ChevronDown size={12} style={{ opacity: 0.6, transform: showHistorique ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              <Gift size={14} /> Prime — {selectedIds.size} agent{selectedIds.size > 1 ? 's' : ''}
+            </button>
+          )}
+
+          {/* Historique */}
+          <div ref={historiqueRef} className="pp-historique-wrapper">
+            <button className="ap-btn-secondary pp-historique-btn" onClick={() => setShowHistorique(v => !v)}>
+              <History size={14} /> Historique
+              <ChevronDown size={12} className={`pp-historique-chevron ${showHistorique ? 'rotated' : ''}`} />
             </button>
 
-            {/* Dropdown historique */}
             {showHistorique && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                background: '#fff', border: '1px solid #e2e6ef',
-                borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                zIndex: 999, width: '280px', overflow: 'hidden',
-              }}>
-                {/* Header dropdown */}
-                <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f2f7', background: '#f8f9fc' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#1a1f3c' }}>📅 Historique des paies</p>
-                  <p style={{ fontSize: '11px', color: '#9aa3b5', marginTop: '2px' }}>Sélectionner une année puis un mois</p>
+              <div className="pp-historique-dropdown">
+                <div className="pp-historique-header">
+                  <p className="pp-historique-title">📅 Historique des paies</p>
+                  <p className="pp-historique-subtitle">Sélectionner une année puis un mois</p>
                 </div>
-
-                <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                  {anneesDisponibles.length === 0 ? (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#9aa3b5', fontSize: '13px' }}>Aucun historique disponible</div>
-                  ) : anneesDisponibles.map(annee => (
-                    <div key={annee}>
-                      {/* Ligne année */}
-                      <button
-                        onClick={() => setHistAnnee(histAnnee === annee ? null : annee)}
-                        style={{
-                          width: '100%', padding: '10px 16px',
-                          background: histAnnee === annee ? '#1a1f3c' : '#fff',
-                          border: 'none', cursor: 'pointer',
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          borderBottom: '1px solid #f0f2f7',
-                          fontFamily: 'DM Sans, sans-serif',
-                        }}
-                      >
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: histAnnee === annee ? '#fff' : '#1a1f3c' }}>
-                          {annee}
-                        </span>
-                        <span style={{ fontSize: '11px', color: histAnnee === annee ? 'rgba(255,255,255,0.6)' : '#9aa3b5' }}>
-                          {paies.filter(p => p.annee === annee).length} bulletins
-                          <ChevronDown size={12} style={{ marginLeft: '4px', transform: histAnnee === annee ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
-                        </span>
-                      </button>
-
-                      {/* Grille mois */}
-                      {histAnnee === annee && (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', padding: '10px 12px', background: '#f8f9fc', borderBottom: '1px solid #f0f2f7' }}>
-                          {MOIS_COURTS.map((m, idx) => {
-                            const moisNum = idx + 1
-                            const hasPaies = paies.some(p => p.annee === annee && p.mois === moisNum)
-                            const count = paies.filter(p => p.annee === annee && p.mois === moisNum).length
-                            return (
-                              <button
-                                key={m}
-                                onClick={() => hasPaies && goToHistorique(annee, moisNum)}
-                                disabled={!hasPaies}
-                                style={{
-                                  padding: '6px 4px', borderRadius: '6px',
-                                  border: '1px solid',
-                                  borderColor: hasPaies ? '#1a1f3c' : '#e2e6ef',
-                                  background: hasPaies ? '#1a1f3c' : '#f0f2f7',
-                                  color: hasPaies ? '#fff' : '#c5ccd9',
-                                  fontSize: '11px', fontWeight: hasPaies ? 600 : 400,
-                                  cursor: hasPaies ? 'pointer' : 'not-allowed',
-                                  fontFamily: 'DM Sans, sans-serif',
-                                  textAlign: 'center', position: 'relative',
-                                }}
-                                title={hasPaies ? `${MOIS_LONGS[idx]} ${annee} — ${count} bulletin(s)` : 'Aucun bulletin'}
-                              >
-                                {m}
-                                {hasPaies && count > 0 && (
-                                  <span style={{ display: 'block', fontSize: '9px', color: 'rgba(255,255,255,0.7)', marginTop: '1px' }}>{count}</span>
-                                )}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                <div className="pp-historique-list">
+                  {anneesDisponibles.length === 0
+                    ? <div className="pp-historique-empty">Aucun historique</div>
+                    : anneesDisponibles.map(annee => (
+                      <div key={annee}>
+                        <button onClick={() => setHistAnnee(histAnnee === annee ? null : annee)} className={`pp-historique-year-btn ${histAnnee === annee ? 'active' : ''}`}>
+                          <span className={`pp-historique-year-label ${histAnnee === annee ? 'active' : ''}`}>{annee}</span>
+                          <span className={`pp-historique-year-meta ${histAnnee === annee ? 'active' : ''}`}>
+                            {paies.filter(p => p.annee === annee).length} bulletins
+                            <ChevronDown size={12} className={`pp-historique-chevron pp-historique-chevron--spaced ${histAnnee === annee ? 'rotated' : ''}`} />
+                          </span>
+                        </button>
+                        {histAnnee === annee && (
+                          <div className="pp-historique-month-grid">
+                            {MOIS_COURTS.map((m, idx) => {
+                              const moisNum = idx + 1
+                              const hasPaies = paies.some(p => p.annee === annee && p.mois === moisNum)
+                              const count = paies.filter(p => p.annee === annee && p.mois === moisNum).length
+                              return (
+                                <button key={m} onClick={() => hasPaies && goToHistorique(annee, moisNum)} disabled={!hasPaies}
+                                  className={`pp-historique-month-btn ${hasPaies ? 'active' : ''}`}
+                                  title={hasPaies ? `${MOIS_LONGS[idx]} ${annee} — ${count} bulletin(s)` : 'Aucun bulletin'}
+                                >
+                                  {m}
+                                  {hasPaies && <span className="pp-historique-month-count">{count}</span>}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  }
                 </div>
               </div>
             )}
@@ -267,79 +428,46 @@ export const PaiePage: React.FC = () => {
         </div>
       </div>
 
-      {error && (
-        <div className="pp-alert">⚠ {error}<button onClick={() => setError(null)}>×</button></div>
-      )}
+      {error && <div className="pp-alert">⚠ {error}<button onClick={() => setError(null)}>×</button></div>}
 
       {/* ── Recherche ── */}
       <div className="pp-search-wrapper">
         <div className="pp-search-box">
           <Search className="pp-search-icon" size={14} />
-          <input
-            type="text"
-            className="pp-search-input"
-            placeholder="Rechercher par agent, matricule..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <input type="text" className="pp-search-input" placeholder="Rechercher par agent, matricule..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
       </div>
 
-      {/* ── Onglet "Tous les bulletins" + sélecteur mois Jan–Déc ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
-
-        {/* Onglet unique "Tous les bulletins" */}
-        <button
-          className="pp-tab active"
-          style={{ flexShrink: 0 }}
-          onClick={() => setFilterMois(null)}
-        >
-          Tous les bulletins
-          <span className="pp-tab-count">({groupedPaies[0]?.paies.length ?? 0})</span>
+      {/* ── Onglet + mois ── */}
+      <div className="pp-toolbar">
+        <button className="pp-tab active pp-tab--flat" onClick={() => setFilterMois(null)}>
+          Tous les bulletins <span className="pp-tab-count">({groupedPaies[0]?.paies.length ?? 0})</span>
         </button>
-
-        {/* Section mois Jan–Déc */}
-        <div style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            background: '#fff', border: '1px solid #e2e6ef',
-            borderRadius: '10px', padding: '6px 10px',
-            flexWrap: 'wrap',
-          }}>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#9aa3b5', textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: '4px', whiteSpace: 'nowrap' }}>
-              {currentYear}
-            </span>
-            {MOIS_COURTS.map((m, idx) => {
-              const moisNum = idx + 1
-              const isActive = filterMois === moisNum
-              const hasPaies = paies.some(p => p.mois === moisNum)
-              return (
-                <button
-                  key={m}
-                  onClick={() => setFilterMois(isActive ? null : moisNum)}
-                  style={{
-                    padding: '4px 10px', borderRadius: '6px',
-                    border: '1px solid',
-                    borderColor: isActive ? '#1a1f3c' : hasPaies ? '#c5ccd9' : '#e2e6ef',
-                    background: isActive ? '#1a1f3c' : 'transparent',
-                    color: isActive ? '#fff' : hasPaies ? '#5a6478' : '#c5ccd9',
-                    fontSize: '11px', fontWeight: isActive ? 700 : 400,
-                    cursor: 'pointer',
-                    fontFamily: 'DM Sans, sans-serif',
-                    transition: 'all 0.15s',
-                    position: 'relative',
-                  }}
-                  title={`${MOIS_LONGS[idx]} ${currentYear}`}
-                >
-                  {m}
-                  {/* Point vert si bulletins existent */}
-                  {hasPaies && !isActive && (
-                    <span style={{ position: 'absolute', top: '2px', right: '2px', width: '5px', height: '5px', borderRadius: '50%', background: '#27ae60' }} />
-                  )}
-                </button>
-              )
-            })}
-
+        <div className="pp-toolbar-filter">
+          <span className="pp-toolbar-year">{currentYear}</span>
+          {MOIS_COURTS.map((m, idx) => {
+            const moisNum = idx + 1
+            const isActive = filterMois === moisNum
+            const hasPaies = paies.some(p => p.mois === moisNum)
+            return (
+              <button key={m} onClick={() => setFilterMois(isActive ? null : moisNum)}
+                className={`pp-month-btn ${isActive ? 'active' : ''}`}
+                title={`${MOIS_LONGS[idx]} ${currentYear}`}
+              >
+                {m}
+                {hasPaies && !isActive && <span className="pp-month-dot" />}
+              </button>
+            )
+          })}
         </div>
+
+        {/* Barre de sélection */}
+        {selectedIds.size > 0 && (
+          <div className="pp-selection-banner">
+            <span className="pp-selection-count">{selectedIds.size} sélectionné{selectedIds.size > 1 ? 's' : ''}</span>
+            <button onClick={() => setSelectedIds(new Set())} className="pp-selection-clear">Tout désélectionner</button>
+          </div>
+        )}
       </div>
 
       {/* ── Tableau ── */}
@@ -348,52 +476,61 @@ export const PaiePage: React.FC = () => {
           <div className="pp-empty"><span className="pp-spinner" /> Chargement...</div>
         ) : displayedPaies.length === 0 ? (
           <div className="pp-empty">
-            {filterMois !== null
-              ? `Aucun bulletin pour ${MOIS_LONGS[filterMois - 1]} ${currentYear}`
-              : 'Aucun bulletin trouvé pour cette période'}
+            {filterMois !== null ? `Aucun bulletin pour ${MOIS_LONGS[filterMois - 1]} ${currentYear}` : 'Aucun bulletin trouvé'}
           </div>
         ) : (
           <table className="pp-table">
             <thead>
               <tr>
-                {['#', 'Agent', 'Période', 'Salaire brut', 'IGR', 'PA', 'Net à payer', 'Mode', 'Actions'].map(h => (
-                  <th key={h}>{h}</th>
-                ))}
+                {/* Checkbox tout sélectionner */}
+                <th className="pp-checkbox-th">
+                  <button onClick={toggleAll} className={`pp-checkbox-btn ${allSelected || someSelected ? 'is-selected' : 'is-muted'}`}>
+                    {allSelected ? <CheckSquare size={15} /> : someSelected ? <CheckSquare size={15} className="pp-checkbox-icon--muted" /> : <Square size={15} />}
+                  </button>
+                </th>
+                {['#', 'Agent', 'Période', 'Salaire brut', 'IGR', 'PA', 'Net à payer', 'Mode', 'Actions'].map(h => <th key={h}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {displayedPaies.map((p, i) => {
                 const net = calculateNet(p)
                 const modeColor = MODE_COLORS[p.mode_paie] ?? { bg: '#f0f0f0', color: '#666' }
+                const isSelected = selectedIds.has(p.Id_paie)
                 return (
-                  <tr key={p.Id_paie} className={`pp-row ${i % 2 === 0 ? 'pp-row-even' : 'pp-row-odd'}`}>
+                  <tr key={p.Id_paie}
+                    className={`pp-row ${i % 2 === 0 ? 'pp-row-even' : 'pp-row-odd'} ${isSelected ? 'is-selected' : ''}`}
+                  >
+                    {/* Checkbox */}
+                    <td className="pp-checkbox-th">
+                      <button onClick={() => toggleSelect(p.Id_paie)} className={`pp-checkbox-btn ${isSelected ? 'is-selected' : 'is-muted'}`}>
+                        {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
+                      </button>
+                    </td>
                     <td><span className="pp-id">#{p.Id_paie}</span></td>
                     <td>
                       {p.agent ? (
-                        <>
-                          <div className="pp-agent-name">{p.agent.civilite} {p.agent.nom}</div>
-                          <div className="pp-agent-mat">{p.agent.num_matricule}</div>
-                        </>
+                        <><div className="pp-agent-name">{p.agent.civilite} {p.agent.nom}</div>
+                        <div className="pp-agent-mat">{p.agent.num_matricule}</div></>
                       ) : <span className="pp-cell-gray">—</span>}
                     </td>
-                    <td>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#5a6478' }}>
-                        {MOIS_COURTS[p.mois - 1]} {p.annee}
-                      </span>
-                    </td>
+                    <td><span className="pp-period">{MOIS_COURTS[p.mois - 1]} {p.annee}</span></td>
                     <td className="pp-cell-num">{(p.salaire_brut ?? 0).toLocaleString('fr-MG')} Ar</td>
                     <td className="pp-cell-red">− {(p.IGR ?? 0).toLocaleString('fr-MG')} Ar</td>
                     <td className="pp-cell-red">− {(p.PA ?? 0).toLocaleString('fr-MG')} Ar</td>
                     <td><span className="pp-net">{net.toLocaleString('fr-MG')} Ar</span></td>
-                    <td>
-                      <span className="pp-mode" style={{ background: modeColor.bg, color: modeColor.color }}>
-                        {p.mode_paie}
-                      </span>
-                    </td>
+                    <td><span className={`pp-mode ${getModeClass(p.mode_paie)}`}>{p.mode_paie}</span></td>
                     <td>
                       <div className="pp-actions">
                         <button className="pp-icon-btn" title="Voir" onClick={() => setViewPaie(p)}><Eye size={13} /></button>
                         <button className="pp-icon-btn pp-icon-btn--edit" title="Modifier" onClick={() => { setEditPaie(p); setShowForm(true) }}><Pencil size={13} /></button>
+                        {/* ── Bouton Prime individuelle ── */}
+                        <button
+                          title="Ajouter une prime"
+                          onClick={() => setPrimeTargets([p])}
+                          className="pp-prime-action"
+                        >
+                          <Gift size={12} /> Prime
+                        </button>
                         <button className="pp-icon-btn pp-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(p.Id_paie)}><Trash2 size={13} /></button>
                         <button className="ap-btn-secondary" title="Exporter PDF" onClick={() => exportPdf(p.Id_paie)}><Download size={14} /></button>
                       </div>
@@ -408,12 +545,12 @@ export const PaiePage: React.FC = () => {
 
       {/* Pagination */}
       {lastPage > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px' }}>
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #e2e6ef', background: page === 1 ? '#f8f9fc' : '#fff', color: page === 1 ? '#c5ccd9' : '#1a1f3c', cursor: page === 1 ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '12px' }}>← Préc.</button>
+        <div className="pp-pagination-wrap">
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="pp-pagination-btn">← Préc.</button>
           {Array.from({ length: lastPage }, (_, i) => i + 1).map(p => (
-            <button key={p} onClick={() => setPage(p)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid', borderColor: p === page ? '#1a1f3c' : '#e2e6ef', background: p === page ? '#1a1f3c' : '#fff', color: p === page ? '#fff' : '#1a1f3c', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '12px', fontWeight: p === page ? 700 : 400 }}>{p}</button>
+            <button key={p} onClick={() => setPage(p)} className={`pp-pagination-page ${p === page ? 'active' : ''}`}>{p}</button>
           ))}
-          <button onClick={() => setPage(p => Math.min(lastPage, p + 1))} disabled={page === lastPage} style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #e2e6ef', background: page === lastPage ? '#f8f9fc' : '#fff', color: page === lastPage ? '#c5ccd9' : '#1a1f3c', cursor: page === lastPage ? 'not-allowed' : 'pointer', fontFamily: 'DM Sans, sans-serif', fontSize: '12px' }}>Suiv. →</button>
+          <button onClick={() => setPage(p => Math.min(lastPage, p + 1))} disabled={page === lastPage} className="pp-pagination-btn">Suiv. →</button>
         </div>
       )}
 
@@ -425,33 +562,28 @@ export const PaiePage: React.FC = () => {
               <div className="pp-modal-header-content">
                 <div className="pp-modal-icon"><FileText size={22} /></div>
                 <div>
-                  <div className="pp-modal-title">
-                    Bulletin #{viewPaie.Id_paie} — {MOIS_LONGS[viewPaie.mois - 1]} {viewPaie.annee}
-                  </div>
+                  <div className="pp-modal-title">Bulletin #{viewPaie.Id_paie} — {MOIS_LONGS[viewPaie.mois - 1]} {viewPaie.annee}</div>
                   <div className="pp-modal-sub">
-                    {viewPaie.agent
-                      ? `${viewPaie.agent.civilite} ${viewPaie.agent.nom} ${viewPaie.agent.prenoms || ''} · ${viewPaie.agent.num_matricule}`
-                      : '—'}
+                    {viewPaie.agent ? `${viewPaie.agent.civilite} ${viewPaie.agent.nom} ${viewPaie.agent.prenoms || ''} · ${viewPaie.agent.num_matricule}` : '—'}
                   </div>
                 </div>
               </div>
               <button className="pp-modal-close" onClick={() => setViewPaie(null)}>×</button>
             </div>
-
             <div className="pp-modal-body">
               <p className="pp-modal-section-title">Rémunérations</p>
               <div className="pp-modal-grid">
                 {[
-                  { label: 'Salaire brut',      value: viewPaie.salaire_brut },
-                  { label: 'Indice',             value: viewPaie.Indice },
-                  { label: 'Prime',              value: viewPaie.prime },
-                  { label: 'Prime spéciale',     value: viewPaie.prime_speciale },
-                  { label: "Prime fin d'année",  value: viewPaie.prime_fin_annee },
-                  { label: 'Allocation',         value: viewPaie.alloc },
-                  { label: 'Logement',           value: viewPaie.logement },
-                  { label: 'Scolarité',          value: viewPaie.scola },
-                  { label: 'Remboursement',      value: viewPaie.remboursement },
-                  { label: 'Rappel',             value: viewPaie.rappel },
+                  { label: 'Salaire brut', value: viewPaie.salaire_brut },
+                  { label: 'Indice', value: viewPaie.Indice },
+                  { label: 'Prime', value: viewPaie.prime },
+                  { label: 'Prime spéciale', value: viewPaie.prime_speciale },
+                  { label: "Prime fin d'année", value: viewPaie.prime_fin_annee },
+                  { label: 'Allocation', value: viewPaie.alloc },
+                  { label: 'Logement', value: viewPaie.logement },
+                  { label: 'Scolarité', value: viewPaie.scola },
+                  { label: 'Remboursement', value: viewPaie.remboursement },
+                  { label: 'Rappel', value: viewPaie.rappel },
                 ].map(({ label, value }) => (
                   <div key={label} className="pp-modal-field">
                     <div className="pp-modal-field-label">{label}</div>
@@ -459,31 +591,22 @@ export const PaiePage: React.FC = () => {
                   </div>
                 ))}
               </div>
-
-              <p className="pp-modal-section-title" style={{ marginTop: 16 }}>Déductions</p>
+              <p className="pp-modal-section-title pp-section-spacer">Déductions</p>
               <div className="pp-modal-grid">
-                <div className="pp-modal-field">
-                  <div className="pp-modal-field-label">IGR</div>
-                  <div className="pp-modal-field-value red">− {(viewPaie.IGR ?? 0).toLocaleString('fr-MG')} Ar</div>
-                </div>
-                <div className="pp-modal-field">
-                  <div className="pp-modal-field-label">PA / CNAPS</div>
-                  <div className="pp-modal-field-value red">− {(viewPaie.PA ?? 0).toLocaleString('fr-MG')} Ar</div>
-                </div>
+                <div className="pp-modal-field"><div className="pp-modal-field-label">IGR</div><div className="pp-modal-field-value red">− {(viewPaie.IGR ?? 0).toLocaleString('fr-MG')} Ar</div></div>
+                <div className="pp-modal-field"><div className="pp-modal-field-label">PA / CNAPS</div><div className="pp-modal-field-value red">− {(viewPaie.PA ?? 0).toLocaleString('fr-MG')} Ar</div></div>
               </div>
-
               <div className="pp-modal-net">
                 <span>Net à payer</span>
                 <span className="pp-modal-net-amount">{calculateNet(viewPaie).toLocaleString('fr-MG')} Ar</span>
               </div>
-
-              <p className="pp-modal-section-title" style={{ marginTop: 16 }}>Informations</p>
+              <p className="pp-modal-section-title pp-section-spacer">Informations</p>
               <div className="pp-modal-grid">
                 {[
-                  { label: 'Mode de paie',   value: viewPaie.mode_paie },
-                  { label: "Date d'effet",   value: viewPaie.date_effet || '—' },
-                  { label: 'Chapitre',       value: viewPaie.chap || '—' },
-                  { label: 'Article',        value: viewPaie.art || '—' },
+                  { label: 'Mode de paie', value: viewPaie.mode_paie },
+                  { label: "Date d'effet", value: viewPaie.date_effet || '—' },
+                  { label: 'Chapitre', value: viewPaie.chap || '—' },
+                  { label: 'Article', value: viewPaie.art || '—' },
                 ].map(({ label, value }) => (
                   <div key={label} className="pp-modal-field">
                     <div className="pp-modal-field-label">{label}</div>
@@ -492,7 +615,6 @@ export const PaiePage: React.FC = () => {
                 ))}
               </div>
             </div>
-
             <div className="pp-modal-footer">
               <button className="pp-btn-secondary" onClick={() => setViewPaie(null)}>Fermer</button>
               <button className="pp-btn-primary" onClick={() => { setViewPaie(null); setEditPaie(viewPaie); setShowForm(true) }}>
@@ -503,12 +625,17 @@ export const PaiePage: React.FC = () => {
         </div>
       )}
 
-      {showForm && (
-        <PaieForm
-          paie={editPaie}
-          onSave={handleSave}
-          onClose={() => { setShowForm(false); setEditPaie(null) }}
+      {/* ── Modal Prime ── */}
+      {primeTargets && (
+        <PrimeModal
+          agents={primeTargets}
+          onClose={() => setPrimeTargets(null)}
+          onApply={handleApplyPrime}
         />
+      )}
+
+      {showForm && (
+        <PaieForm paie={editPaie} onSave={handleSave} onClose={() => { setShowForm(false); setEditPaie(null) }} />
       )}
     </div>
   )
