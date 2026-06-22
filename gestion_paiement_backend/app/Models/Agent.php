@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Fonction;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -110,6 +111,11 @@ class Agent extends Model
     public function carrieres()
     {
         return $this->hasMany(Carriere::class, 'Id_agent', 'Id_agent');
+    }
+
+    public function fonctions()
+    {
+        return $this->hasMany(Fonction::class, 'Id_agent', 'Id_agent');
     }
 
     public function preembauches()

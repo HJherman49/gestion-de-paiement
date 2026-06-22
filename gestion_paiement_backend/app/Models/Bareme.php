@@ -20,6 +20,33 @@ class Bareme extends Model
         'rappell'
     ];
 
+    protected static function booted()
+    {
+        // Calculer le salaire mensuel automatiquement avant de sauvegarder
+        static::saving(function (Bareme $bareme) {
+            $bareme->calculerSalaireMensuel();
+        });
+
+        static::updated(function (Bareme $bareme) {
+            if ($bareme->wasChanged('Indice')) {
+                $bareme->carrieres()->update(['indice' => $bareme->Indice]);
+            }
+        });
+    }
+
+    /**
+     * Calculer automatiquement le salaire mensuel
+     * Formule: salaire_mensuel = salaire_base + anciennete + DIF + rappell
+     */
+    public function calculerSalaireMensuel()
+    {
+        $this->salaire_mensuel = 
+            ($this->salaire_base ?? 0) + 
+            ($this->anciennete ?? 0) + 
+            ($this->DIF ?? 0) + 
+            ($this->rappell ?? 0);
+    }
+
     protected $casts = [
         'Indice' => 'integer',
         'salaire_base' => 'decimal:2',
@@ -28,4 +55,8 @@ class Bareme extends Model
         'DIF' => 'decimal:2',
         'rappell' => 'decimal:2',
     ];
+    public function carrieres()
+    {
+        return $this->hasMany(Carriere::class, 'Id_bareme', 'Id_bareme');
+    }
 }

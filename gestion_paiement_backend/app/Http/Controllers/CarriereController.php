@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCarriereRequest;
 use App\Http\Resources\CarriereResource;
+use App\Models\Agent;
 use App\Models\Carriere;
 
 class CarriereController extends Controller
@@ -26,6 +27,19 @@ class CarriereController extends Controller
     {
         $carriere->load(['agent.direction', 'agent.service', 'bareme']);
         return new CarriereResource($carriere);
+    }
+
+    public function parAgent(Agent $agent)
+    {
+        return CarriereResource::collection(
+            $agent->carrieres()->with(['agent.direction', 'agent.service', 'bareme'])->get()
+        );
+    }
+
+    public function actuelle(Agent $agent)
+    {
+        $carriere = $agent->carriereActuelle()->with(['agent.direction', 'agent.service', 'bareme'])->first();
+        return $carriere ? new CarriereResource($carriere) : response()->json(null, 204);
     }
 
     public function update(StoreCarriereRequest $request, Carriere $carriere)

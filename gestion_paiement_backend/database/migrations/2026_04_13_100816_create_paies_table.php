@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('annee');
             $table->decimal('salaire_brut', 15, 2);
             $table->decimal('prime', 15, 2)->default(0);
+            $table->decimal('prime_fonction', 15, 2)->default(0);
             $table->decimal('scola', 15, 2)->default(0);
             $table->decimal('remboursement', 15, 2)->default(0);
             $table->integer('Indice');

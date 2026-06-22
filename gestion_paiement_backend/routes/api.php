@@ -69,6 +69,8 @@ Route::prefix('v1')->group(function () {
     // ------------------------------------------------
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
+        Route::get('paies/recap-mois', [PaieController::class, 'recapMois']);
+        Route::post('paies/generer-mois', [PaieController::class, 'genererMois']);
         
         Route::apiResource('directions',  DirectionController::class);
         Route::apiResource('services',    ServiceController::class);
@@ -124,6 +126,8 @@ Route::prefix('v1')->group(function () {
         // Notifications (générées depuis l'historique)
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::delete('historiques/{id}', [HistoriqueController::class, 'destroy']);
+
+
 
     });
 });
