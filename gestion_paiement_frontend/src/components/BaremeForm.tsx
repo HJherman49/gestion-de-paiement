@@ -129,7 +129,7 @@ export const BaremeForm: React.FC<BaremeFormProps> = ({ bareme, onSave, onClose 
             <p className="brf-section-title">Éléments de salaire</p>
             <div className="brf-grid-2">
               <NumField label="Salaire de base"   field="salaire_base" value={form.salaire_base} onChange={handleNumChange} required hint="Salaire brut de référence (Ar)" />
-              <NumField label="Salaire mensuel"   field="salaire_mensuel" value={form.salaire_mensuel} onChange={handleNumChange} hint="Salaire mensuel total (Ar)" />
+              {/* <NumField label="Salaire mensuel"   field="salaire_mensuel" value={form.salaire_mensuel} onChange={handleNumChange} hint="Salaire mensuel total (Ar)" /> */}
               <NumField label="Ancienneté"         field="anciennete"      value={form.anciennete} onChange={handleNumChange} hint="Prime d'ancienneté (Ar)" />
               <NumField label="DIF"                field="DIF"             value={form.DIF} onChange={handleNumChange} hint="Droit individuel à la formation (Ar)" />
               <NumField label="Rappel (rappell)"   field="rappell"         value={form.rappell} onChange={handleNumChange} hint="Montant de rappel (Ar)" />
@@ -144,7 +144,7 @@ export const BaremeForm: React.FC<BaremeFormProps> = ({ bareme, onSave, onClose 
                 {[
                   { label: 'Indice',           value: form.Indice,          mono: true },
                   { label: 'Salaire de base',  value: form.salaire_base,    money: true },
-                  { label: 'Salaire mensuel',  value: form.salaire_mensuel, money: true },
+                 // { label: 'Salaire mensuel',  value: form.salaire_mensuel, money: true },
                   { label: 'Ancienneté',        value: form.anciennete,      money: true },
                   { label: 'DIF',               value: form.DIF,             money: true },
                   { label: 'Rappel',            value: form.rappell,         money: true },

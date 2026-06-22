@@ -13,7 +13,8 @@ interface Agent {
 
 interface Bareme {
   Id_bareme:    number
-  indice:       number
+  Indice:       number
+  indice?:      number
   salaire_base: number
 }
 
@@ -34,7 +35,6 @@ const EMPTY: CarrierePayload = {
   grade:      '',
   classe:     '',
   echelon:    '',
-  indice:     0,
   Id_agent:   0,
   Id_bareme:  undefined,
 }
@@ -79,21 +79,32 @@ export const CarriereForm: React.FC<CarriereFormProps> = ({
     setForm(prev => ({ ...prev, [key]: value }))
 
   // ── Auto-remplir indice depuis barème sélectionné 
-  const handleBaremeChange = (Id_bareme: number) => {
+  const handleBaremeChange = (Id_bareme?: number) => {
     set('Id_bareme', Id_bareme)
     const b = baremes.find(b => b.Id_bareme === Id_bareme)
-    if (b) set('indice', b.indice)
+    set('indice', b ? (b.Indice ?? b.indice) : undefined)
   }
 
   const handleSubmit = async () => {
     if (!form.Id_agent) { setError('Veuillez sélectionner un agent'); return }
     if (!form.grade.trim()) { setError('Le grade est obligatoire'); return }
     if (!form.Categorie) { setError('La catégorie est obligatoire'); return }
+    if (!form.Id_bareme) { setError('Veuillez sélectionner un barème'); return }
+
+    const payload: CarrierePayload = {
+      Categorie: form.Categorie,
+      corps: form.corps,
+      grade: form.grade,
+      classe: form.classe,
+      echelon: form.echelon,
+      Id_agent: form.Id_agent,
+      Id_bareme: form.Id_bareme,
+    }
 
     setSaving(true)
     setError(null)
     try {
-      await onSave(form)
+      await onSave(payload)
     } catch (err: any) {
       const v = err.response?.data?.errors
       setError(v
@@ -210,9 +221,11 @@ export const CarriereForm: React.FC<CarriereFormProps> = ({
               {/* Indice */}
               <div className="cf-field">
                 <label className={lbl}>Indice</label>
-                <input type="number" className={inp} value={form.indice || ''}
-                  onChange={e => set('indice', Number(e.target.value))}
-                  placeholder="Ex: 350" min="0" />
+                <input type="number" className={inp}
+                  value={form.indice ?? ''}
+                  disabled
+                  placeholder="Sélectionnez un barème"
+                />
               </div>
             </div>
           </div>
@@ -225,13 +238,13 @@ export const CarriereForm: React.FC<CarriereFormProps> = ({
               <select
                 className={inp}
                 value={form.Id_bareme || ''}
-                onChange={e => handleBaremeChange(Number(e.target.value))}
+                onChange={e => handleBaremeChange(e.target.value ? Number(e.target.value) : undefined)}
                 title="Barème"
               >
                 <option value="">-- Aucun barème --</option>
                 {baremes.map(b => (
                   <option key={b.Id_bareme} value={b.Id_bareme}>
-                    Indice {b.indice} → {Number(b.salaire_base).toLocaleString('fr-MG')} Ar
+                    Indice {b.Indice ?? b.indice} → {Number(b.salaire_base).toLocaleString('fr-MG')} Ar
                   </option>
                 ))}
               </select>

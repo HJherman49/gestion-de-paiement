@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { X, Save, DollarSign, User, FileText, Calendar, Loader2 } from 'lucide-react'
 import type { PaiePayload, PaieFromAPI } from '../services/paieService'
 import { getCarriereAgent, type CarriereFromAPI } from '../services/carriereService'
+import { getFonctionsAgent, type FonctionFromAPI } from '../services/fonctionService'
 import api from '../services/api'
 
 interface Agent {
@@ -44,6 +45,7 @@ const EMPTY: PaiePayload = {
   Indice: 0,
   prime_speciale: 0,
   prime_fin_annee: 0,
+  prime_fonction: 0,
   alloc: 0,
   logement: 0,
   IGR: 0,
@@ -64,6 +66,7 @@ const normalizePaie = (paie: PaieFromAPI): PaiePayload => ({
   annee:           safeNumber(paie.annee),
   salaire_brut:    safeNumber(paie.salaire_brut),
   prime:           safeNumber(paie.prime),
+ prime_fonction:  safeNumber(paie.prime_fonction),
   scola:           safeNumber(paie.scola),
   remboursement:   safeNumber(paie.remboursement),
   Indice:          safeNumber(paie.Indice),
@@ -121,6 +124,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   const [step, setStep]       = useState<Section>(initialStep ?? 'identification')
   const [form, setForm]       = useState<PaiePayload>({ ...EMPTY, Id_agent: defaultAgentId ?? 0 })
   const [agents, setAgents]   = useState<Agent[]>([])
+  const [fonctions, setFonctions] = useState<FonctionFromAPI[]>([])
   const [carrieres, setCarrieres] = useState<CarriereFromAPI[]>([])
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
@@ -152,22 +156,25 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   useEffect(() => {
     if (form.Id_agent) {
       loadAgentCarrieres(form.Id_agent)
+      loadAgentFonctions(form.Id_agent)
     }
   }, [form.Id_agent])
 
-  const set = (key: keyof PaiePayload, value: any) =>
-    setForm(prev => ({ ...prev, [key]: value }))
+  const set = <K extends keyof PaiePayload>(key: K, value: PaiePayload[K]) =>
+    setForm(prev => ({ ...prev, [key]: value } as PaiePayload))
 
   const handleAgentChange = (Id_agent: number) => {
     set('Id_agent', Id_agent)
   }
 
   const handleNumChange = useCallback((key: keyof PaiePayload, value: string) => {
-    set(key, value === '' ? 0 : parseFloat(value) || 0);
+    // numeric fields in PaiePayload are typed as number; coerce safely
+    const num = value === '' ? 0 : parseFloat(value) || 0
+    set(key as any, num as any)
   }, [set]);
 
   const setNum = (key: keyof PaiePayload, value: string) =>
-    set(key, value === '' ? 0 : parseFloat(value) || 0)
+    set(key as any, (value === '' ? 0 : parseFloat(value) || 0) as any)
 
   const loadAgentCarrieres = async (Id_agent: number) => {
     try {
@@ -179,11 +186,45 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
         .filter((c): c is CarriereFromAPI => !!c)
         .sort((a, b) => (b.Id_carriere ?? 0) - (a.Id_carriere ?? 0))[0]
 
-      if (carre?.bareme?.salaire_base) {
-        set('salaire_brut', Number(carre.bareme.salaire_base))
+      if (carre?.bareme?.salaire_mensuel) {
+        set('salaire_brut', Number(carre.bareme.salaire_mensuel))
+      }
+      // Récupérer la prime de fonction la plus récente de l'agent
+      try {
+        const r2 = await api.get(`/agents/${Id_agent}/fonctions`, { params: { per_page: 1 } })
+        const fdata = r2.data?.data ?? r2.data ?? []
+        const lastFonction = Array.isArray(fdata) ? fdata[0] : fdata
+        const primeFonction = Number(lastFonction?.fonction_prime ?? 0)
+        set('prime_fonction', primeFonction)
+      } catch (err) {
+        console.warn('Could not load fonction_prime for agent', Id_agent, err)
+        // ignore — ne bloque pas le chargement des carrières
       }
     } catch (err) {
       setCarrieres([])
+    }
+  }
+
+  const loadAgentFonctions = async (Id_agent: number) => {
+    try {
+      const res = await getFonctionsAgent(Id_agent)
+      const data = res.data?.data ?? res.data ?? []
+      const list = Array.isArray(data) ? data : [data]
+      setFonctions(list)
+
+      const latestFonction = list
+        .filter((f): f is FonctionFromAPI => !!f)
+        .sort((a, b) => {
+          const aDate = new Date(a.date_affectation).getTime() || 0
+          const bDate = new Date(b.date_affectation).getTime() || 0
+          return bDate - aDate
+        })[0]
+
+      if (latestFonction?.fonction_prime && form.prime_fonction === 0) {
+        set('prime_fonction', Number(latestFonction.fonction_prime))
+      }
+    } catch (err) {
+      setFonctions([])
     }
   }
 
@@ -195,7 +236,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
 
   // ── Totaux calculés 
   const totalBrut = form.salaire_brut + form.prime + form.prime_speciale +
-    form.prime_fin_annee + form.alloc + form.logement + form.scola +
+    form.prime_fin_annee + form.prime_fonction + form.alloc + form.logement + form.scola +
     form.remboursement + form.rappel
   const totalDeductions = form.IGR + form.PA
   const netAPayer = totalBrut - totalDeductions
@@ -204,12 +245,6 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
   const handleSubmit = async () => {
     if (!form.Id_agent) { setError('Veuillez sélectionner un agent'); setStep('identification'); return }
     if (!form.mois || !form.annee) { setError('Mois et année sont obligatoires'); setStep('identification'); return }
-
-    if (isEditMode && (form.prime === 0 || form.prime_speciale === 0 || form.prime_fin_annee === 0)) {
-      setError('Pendant la modification, toutes les primes doivent être remplies.');
-      setStep('remuneration');
-      return
-    }
 
     setSaving(true)
     setError(null)
@@ -387,7 +422,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                   />
                   {selectedCarriere?.bareme && (
                     <p className="pf-hint">
-                      Barème {selectedCarriere.bareme.indice} — {Number(selectedCarriere.bareme.salaire_base).toLocaleString('fr-MG')} Ar
+                      Barème {selectedCarriere.bareme.indice} — {Number(selectedCarriere.bareme.salaire_mensuel).toLocaleString('fr-MG')} Ar
                     </p>
                   )}
                 </div>
@@ -400,24 +435,28 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                   field="prime" 
                   value={form.prime} 
                   onChange={handleNumChange} 
-                  required={isEditMode}
-                  disabled={!isEditMode}   // ← Ajout
+                  disabled={!isEditMode}
                 />
                 <NumField 
                   label="Prime spéciale" 
                   field="prime_speciale" 
                   value={form.prime_speciale} 
                   onChange={handleNumChange} 
-                  required={isEditMode}
-                  disabled={!isEditMode}   // ← Ajout
+                  disabled={!isEditMode}
                 />
                 <NumField 
                   label="Prime fin d'année" 
                   field="prime_fin_annee" 
                   value={form.prime_fin_annee} 
                   onChange={handleNumChange} 
-                  required={isEditMode}
-                  disabled={!isEditMode}   // ← Ajout
+                  disabled={!isEditMode}
+                />
+                <NumField 
+                  label="Prime de fonction" 
+                  field="prime_fonction" 
+                  value={form.prime_fonction} 
+                  onChange={handleNumChange} 
+                  disabled={!isEditMode}
                 />
 
                 <NumField label="Allocation" field="alloc" value={form.alloc} onChange={handleNumChange} />
@@ -484,7 +523,7 @@ export const PaieForm: React.FC<PaieFormProps> = ({ paie, defaultAgentId, onSave
                   { label: 'Mode de paie',    value: form.mode_paie },
                   { label: 'Chapitre / Art',  value: `${form.chap || '—'} / ${form.art || '—'}` },
                   { label: 'Salaire brut',    value: `${form.salaire_brut.toLocaleString('fr-MG')} Ar` },
-                  { label: 'Primes totales',  value: `${(form.prime + form.prime_speciale + form.prime_fin_annee).toLocaleString('fr-MG')} Ar` },
+                  { label: 'Primes totales',  value: `${(form.prime + form.prime_speciale + form.prime_fin_annee + form.prime_fonction).toLocaleString('fr-MG')} Ar` },
                   { label: 'Indemnités',      value: `${(form.alloc + form.logement + form.scola + form.remboursement + form.rappel).toLocaleString('fr-MG')} Ar` },
                   { label: 'Total brut',      value: `${totalBrut.toLocaleString('fr-MG')} Ar`, bold: true },
                   { label: 'IGR',             value: `- ${form.IGR.toLocaleString('fr-MG')} Ar`, red: true },
