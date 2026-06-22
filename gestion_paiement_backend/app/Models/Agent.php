@@ -171,7 +171,6 @@ class Agent extends Model
     public function carriereActuelle()
     {
         return $this->hasOne(Carriere::class, 'Id_agent', 'Id_agent')
-                     ->whereNull('date_fin')
-                     ->latest('date_debut');
+                     ->latest('Id_carriere');
     }
 }
