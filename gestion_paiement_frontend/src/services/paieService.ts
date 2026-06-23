@@ -6,6 +6,7 @@ export interface PaieFromAPI {
   annee:           number
   salaire_brut:    number
   prime:           number
+  prime_fonction:  number
   scola:           number
   remboursement:   number
   Indice:          number
@@ -31,6 +32,7 @@ export interface PaiePayload {
   annee:           number
   salaire_brut:    number
   prime:           number
+  prime_fonction:  number
   scola:           number
   remboursement:   number
   Indice:          number
@@ -48,6 +50,37 @@ export interface PaiePayload {
   Id_agent:        number
   Id_enfant?:      number | null
 }
+
+export interface RecapMois {
+  mois: number
+  nb_bulletins: number
+  total_net: number
+  total_primes: number
+  a_des_primes: boolean
+  genere: boolean
+}
+ 
+export interface RecapMoisResponse {
+  data: RecapMois[]
+  annee: number
+}
+ 
+/**
+ * Récupère le récapitulatif de tous les mois d'une année :
+ * nombre de bulletins, total net, présence de primes, et si le mois
+ * a déjà été généré (utilisé pour la barre de mois).
+ */
+export const getRecapMois = (annee: number) =>
+  api.get<RecapMoisResponse>('/paies/recap-mois', { params: { annee } })
+ 
+/**
+ * Déclenche la génération manuelle des bulletins pour un mois donné.
+ * `force=true` régénère les bulletins existants qui ont le statut 'auto'
+ * (ne touche jamais un bulletin déjà 'modifie').
+ */
+export const genererBulletinsMois = (mois: number, annee: number, force = false) =>
+  api.post('/paies/generer-mois', { mois, annee, force })
+
 
 export const getPaies       = async (params: { page?: number; per_page?: number; search?: string } = {}) =>
   api.get('/paies', { params })

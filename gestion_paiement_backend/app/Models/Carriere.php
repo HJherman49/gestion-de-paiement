@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Agent;
+use App\Models\Bareme;
+use App\Models\Reclassement;
 
 class Carriere extends Model
 {
@@ -19,7 +22,6 @@ class Carriere extends Model
         'grade',
         'classe',
         'echelon',
-        'indice',
         'Id_agent',
         'Id_bareme',
     ];
@@ -27,6 +29,30 @@ class Carriere extends Model
     protected $casts = [
         'indice' => 'integer',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function (Carriere $carriere) {
+            $carriere->syncIndiceFromBareme();
+        });
+
+        static::updating(function (Carriere $carriere) {
+            $carriere->syncIndiceFromBareme();
+        });
+    }
+
+    public function syncIndiceFromBareme(): void
+    {
+        if (! $this->Id_bareme) {
+            return;
+        }
+
+        $bareme = $this->bareme ?? Bareme::find($this->Id_bareme);
+
+        if ($bareme) {
+            $this->indice = $bareme->Indice;
+        }
+    }
     
     public function agent()
     {

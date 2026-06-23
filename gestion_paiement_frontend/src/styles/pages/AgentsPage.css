@@ -1307,6 +1307,11 @@
   display: inline-block;
 }
 
+.ap-years-service {
+  font-weight: 600;
+  color: var(--instat-primary);
+}
+
 .ap-enfant-age--inf { background: #1a4d8c10; color: #1a4d8c; font-weight: 600; }
 .ap-enfant-age--sup { background: #27ae6010; color: #27ae60; font-weight: 600; }
 

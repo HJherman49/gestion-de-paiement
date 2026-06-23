@@ -145,6 +145,26 @@ export const AgentsPage: React.FC = () => {
     loadEnfants(agent.Id_agent)
   }
 
+
+  // Ajoute cette fonction juste avant le return (après les autres fonctions)
+const calculateYearsOfService = (dateEntree?: string): string => {
+  if (!dateEntree) return '—';
+  
+  const entryDate = new Date(dateEntree);
+  const today = new Date();
+  
+  let years = today.getFullYear() - entryDate.getFullYear();
+  const monthDiff = today.getMonth() - entryDate.getMonth();
+  
+  // Ajustement si on n'a pas encore passé l'anniversaire de l'entrée
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < entryDate.getDate())) {
+    years--;
+  }
+  
+  return years > 0 ? `${years} an${years > 1 ? 's' : ''}` : 'Moins d\'un an';
+  };
+
+
   return (
     <div className="ap-page">
 
@@ -198,7 +218,7 @@ export const AgentsPage: React.FC = () => {
         <table className="ap-table">
           <thead>
             <tr>
-              {['Matricule', 'Nom & Prénoms', 'CIN', 'Direction', 'Service', 'Statut', 'Tél', 'Actions'].map(h => (
+              {['Matricule', 'Nom & Prénoms', 'CIN', 'Direction', 'Service', 'Statut', 'Tél', 'Actions','Années de service'].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
@@ -206,7 +226,7 @@ export const AgentsPage: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="ap-empty">
+                <td colSpan={9} className="ap-empty">
                   <span className="ap-spinner" /> Chargement...
                 </td>
               </tr>
@@ -248,6 +268,10 @@ export const AgentsPage: React.FC = () => {
                         <Trash2 size={13} />
                       </button>
                     </div>
+                  </td>
+                  {/* Nouvelle colonne pour les années de service */}
+                  <td className="ap-cell-gray ap-years-service">
+                    <strong>{calculateYearsOfService(agent.date_entree_admin)}</strong>
                   </td>
                 </tr>
               )

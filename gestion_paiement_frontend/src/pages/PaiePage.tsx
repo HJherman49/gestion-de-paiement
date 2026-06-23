@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { Plus, Eye, Pencil, Trash2, Search, FileText, Download, History, ChevronDown, Gift, CheckSquare, Square } from 'lucide-react'
-import { getPaies, createPaie, updatePaie, deletePaie, type PaieFromAPI, type PaiePayload } from '../services/paieService'
+import { getPaies, getPaie, createPaie, updatePaie, deletePaie, type PaieFromAPI, type PaiePayload } from '../services/paieService'
+import { MoisBar } from '../components/MoisBar'
+import { getFonctionsAgent } from '../services/fonctionService'
 import { PaieForm } from '../components/PaieForm'
 import '../styles/pages/PaiePage.css'
-import { exportPdf } from '../axios'
+import { exportPdf, exportPdfMois } from '../axios'
 
 const MOIS_COURTS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc']
 const MOIS_LONGS  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
@@ -32,6 +34,7 @@ interface PaieGroup {
 interface PrimePayload {
   prime: number
   prime_speciale: number
+  prime_fonction: number
   prime_fin_annee: number
   motif: string
 }
@@ -39,12 +42,13 @@ interface PrimePayload {
 // ── Modal Prime ───────────────────────────────────────────────────────────────
 
 const PrimeModal: React.FC<{
-  agents: PaieFromAPI[]   // 1 agent = prime individuelle, N agents = prime groupée
+  agents: PaieFromAPI[]   
   onClose: () => void
   onApply: (ids: number[], prime: PrimePayload) => void
 }> = ({ agents, onClose, onApply }) => {
   const [prime, setPrime] = useState('')
   const [primeSpeciale, setPrimeSpeciale] = useState('')
+  const [primeFonction, setPrimeFonction] = useState('')
   const [primeFinAnnee, setPrimeFinAnnee] = useState('')
   const [motif, setMotif] = useState('')
   const [error, setError] = useState('')
@@ -60,11 +64,12 @@ const PrimeModal: React.FC<{
     const payload = {
       prime: toNumber(prime),
       prime_speciale: toNumber(primeSpeciale),
+      prime_fonction: toNumber(primeFonction),
       prime_fin_annee: toNumber(primeFinAnnee),
       motif,
     }
 
-    if (payload.prime <= 0 && payload.prime_speciale <= 0 && payload.prime_fin_annee <= 0) {
+    if (payload.prime <= 0 && payload.prime_speciale <= 0 && payload.prime_fonction <= 0 && payload.prime_fin_annee <= 0) {
       setError('Veuillez saisir au moins une prime valide')
       return
     }
@@ -72,6 +77,38 @@ const PrimeModal: React.FC<{
     onApply(agents.map(a => a.Id_paie), payload)
     onClose()
   }
+
+  useEffect(() => {
+    // Préremplir la prime de fonction pour une prime individuelle depuis la fonction la plus récente
+    if (isMultiple) return
+    const agentId = agents[0]?.Id_agent ?? agents[0]?.agent?.Id_agent
+    if (!agentId) return
+
+    // Si le bulletin a déjà une prime_fonction, l'utiliser prioritairement
+    const existing = agents[0]?.prime_fonction ?? 0
+    if (existing && existing > 0) {
+      setPrimeFonction(String(existing))
+      return
+    }
+
+    let mounted = true
+    ;(async () => {
+      try {
+        const res = await getFonctionsAgent(agentId)
+        const data = res.data?.data ?? res.data ?? []
+        const list = Array.isArray(data) ? data : [data]
+        const latest = list
+          .filter(f => !!f)
+          .sort((a: any, b: any) => {
+            const ad = new Date(a.date_affectation).getTime() || 0
+            const bd = new Date(b.date_affectation).getTime() || 0
+            return bd - ad
+          })[0]
+        if (mounted && latest?.fonction_prime) setPrimeFonction(String(latest.fonction_prime))
+      } catch (_) {}
+    })()
+    return () => { mounted = false }
+  }, [agents, isMultiple])
 
   return (
     <div className="pp-prime-overlay">
@@ -160,12 +197,27 @@ const PrimeModal: React.FC<{
             </div>
           </div>
 
+          <div>
+            <label className="pp-prime-label">Prime de fonction</label>
+            <div className="pp-prime-field">
+              <input
+                className="pp-prime-input pp-prime-input--with-suffix"
+                type="number"
+                min="0"
+                placeholder="Ex: 75000"
+                value={primeFonction}
+                onChange={e => { setPrimeFonction(e.target.value); setError('') }}
+              />
+              <span className="pp-prime-suffix">Ar</span>
+            </div>
+          </div>
+
           {error && <p className="pp-prime-error">{error}</p>}
 
-          {isMultiple && (toNumber(prime) || toNumber(primeSpeciale) || toNumber(primeFinAnnee)) ? (
+          {isMultiple && (toNumber(prime) || toNumber(primeSpeciale) || toNumber(primeFinAnnee) || toNumber(primeFonction)) ? (
             <p className="pp-prime-total">
               Total appliqué : {(
-                (toNumber(prime) + toNumber(primeSpeciale) + toNumber(primeFinAnnee)) * agents.length
+                (toNumber(prime) + toNumber(primeSpeciale) + toNumber(primeFinAnnee) + toNumber(primeFonction)) * agents.length
               ).toLocaleString('fr-MG')} Ar ({agents.length} bulletin{agents.length > 1 ? 's' : ''})
             </p>
           ) : null}
@@ -178,6 +230,7 @@ const PrimeModal: React.FC<{
               <li>Prime</li>
               <li>Prime spéciale</li>
               <li>Prime fin d'année</li>
+              <li>Prime de fonction</li>
             </ul>
           </div>
 
@@ -193,7 +246,7 @@ const PrimeModal: React.FC<{
           </div>
 
           {/* Aperçu */}
-          {(toNumber(prime) || toNumber(primeSpeciale) || toNumber(primeFinAnnee)) > 0 && (
+          {(toNumber(prime) || toNumber(primeSpeciale) || toNumber(primeFinAnnee) || toNumber(primeFonction)) > 0 && (
             <div className="pp-prime-preview">
               <div>
                 <p className="pp-prime-preview-title">Aperçu</p>
@@ -201,7 +254,7 @@ const PrimeModal: React.FC<{
               </div>
               <span className="pp-prime-preview-amount">
                 + {(
-                  toNumber(prime) + toNumber(primeSpeciale) + toNumber(primeFinAnnee)
+                  toNumber(prime) + toNumber(primeSpeciale) + toNumber(primeFinAnnee) + toNumber(primeFonction)
                 ).toLocaleString('fr-MG')} Ar
               </span>
             </div>
@@ -222,7 +275,7 @@ const PrimeModal: React.FC<{
   )
 }
 
-// ── Page principale ───────────────────────────────────────────────────────────
+// ── Page principale
 
 export const PaiePage: React.FC = () => {
   const [paies, setPaies]       = useState<PaieFromAPI[]>([])
@@ -235,7 +288,7 @@ export const PaiePage: React.FC = () => {
   const [lastPage, setLastPage] = useState(1)
   const [total, setTotal]       = useState(0)
   const [error, setError]       = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<string>('all')
+  // activeTab supprimé — le seul onglet actif est toujours "Tous les bulletins"
 
   // ── Sélection multi-agents ───────────────────────────────────────────────
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
@@ -247,7 +300,7 @@ export const PaiePage: React.FC = () => {
   const historiqueRef = useRef<HTMLDivElement>(null)
 
   const currentYear = new Date().getFullYear()
-  const [filterMois, setFilterMois] = useState<number | null>(null)
+  const [filterMois, setFilterMois] = useState<number | null>(new Date().getMonth() + 1)
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -261,7 +314,11 @@ export const PaiePage: React.FC = () => {
   const loadPaies = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await getPaies({ page, per_page: 15 })
+      const params: Record<string, any> = { page, per_page: 15 }
+      if (search.trim())   params.search   = search.trim()
+      if (filterMois)      params.mois     = filterMois
+      if (filterMois)      params.annee    = currentYear
+      const res = await getPaies(params)
       const raw = res.data?.data ?? res.data ?? []
       setPaies(raw)
       if (res.data?.meta) {
@@ -274,32 +331,20 @@ export const PaiePage: React.FC = () => {
 
   useEffect(() => { loadPaies() }, [page])
 
-  const groupedPaies = useMemo<PaieGroup[]>(() => {
-    let result = [...paies]
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      result = result.filter(p =>
-        p.agent?.nom?.toLowerCase().includes(q) ||
-        p.agent?.prenoms?.toLowerCase().includes(q) ||
-        p.agent?.num_matricule?.toLowerCase().includes(q)
-      )
-    }
-    return [{ key: 'all', label: 'Tous les bulletins', paies: result }]
-  }, [paies, search])
+  useEffect(() => { setPage(1); loadPaies() }, [search, filterMois])
+
+  const groupedPaies: PaieGroup[] = [{ key: 'all', label: 'Tous les bulletins', paies }]
 
   const anneesDisponibles = useMemo(() => {
     return [...new Set(paies.map(p => p.annee))].sort((a, b) => b - a)
   }, [paies])
 
-  const currentGroup  = groupedPaies[0]
-  const displayedPaies = useMemo(() => {
-    if (filterMois !== null) return currentGroup.paies.filter(p => p.mois === filterMois)
-    return currentGroup.paies
-  }, [currentGroup, filterMois])
+  const currentGroup   = groupedPaies[0]
+  const displayedPaies = currentGroup.paies
 
   const calculateNet = (p: PaieFromAPI) => {
     const brut = (p.salaire_brut ?? 0) + (p.prime ?? 0) + (p.prime_speciale ?? 0) +
-                 (p.prime_fin_annee ?? 0) + (p.alloc ?? 0) + (p.logement ?? 0) +
+                 (p.prime_fin_annee ?? 0) + (p.prime_fonction ?? 0) + (p.alloc ?? 0) + (p.logement ?? 0) +
                  (p.scola ?? 0) + (p.remboursement ?? 0) + (p.rappel ?? 0)
     return brut - (p.IGR ?? 0) - (p.PA ?? 0)
   }
@@ -317,18 +362,54 @@ export const PaiePage: React.FC = () => {
   const someSelected = selectedIds.size > 0 && !allSelected
 
   // ── Appliquer prime (mock — à brancher sur API) ─────────────────────────
-  const handleApplyPrime = (ids: number[], prime: PrimePayload) => {
-    // TODO: appeler l'API pour chaque id
-    // ex: ids.forEach(id => updatePaie(id, { prime: existingPrime + prime.montant }))
-    const parts = [
-      prime.prime > 0 ? `Prime : ${prime.prime.toLocaleString('fr-MG')} Ar` : null,
-      prime.prime_speciale > 0 ? `Prime spéciale : ${prime.prime_speciale.toLocaleString('fr-MG')} Ar` : null,
-      prime.prime_fin_annee > 0 ? `Prime fin d'année : ${prime.prime_fin_annee.toLocaleString('fr-MG')} Ar` : null,
-    ].filter(Boolean)
+  const handleApplyPrime = async (ids: number[], prime: PrimePayload) => {
+    try {
+      const updateTasks = ids.map(async id => {
+        const res = await getPaie(id)
+        const paie = res.data?.data ?? res.data
 
-    alert(`✅ Primes appliquées à ${ids.length} bulletin(s).\n\n${parts.join('\n')}\n${prime.motif ? `\nMotif : ${prime.motif}` : ''}\n\n(À connecter sur l'API)`)
-    setSelectedIds(new Set())
-    loadPaies()
+        const payload: PaiePayload = {
+          mois: paie.mois,
+          annee: paie.annee,
+          salaire_brut: paie.salaire_brut,
+          prime: (paie.prime ?? 0) + prime.prime,
+          prime_fonction: (paie.prime_fonction ?? 0) + prime.prime_fonction,
+          scola: paie.scola ?? 0,
+          remboursement: paie.remboursement ?? 0,
+          Indice: paie.Indice,
+          prime_speciale: (paie.prime_speciale ?? 0) + prime.prime_speciale,
+          prime_fin_annee: (paie.prime_fin_annee ?? 0) + prime.prime_fin_annee,
+          alloc: paie.alloc ?? 0,
+          logement: paie.logement ?? 0,
+          IGR: paie.IGR ?? 0,
+          rappel: paie.rappel ?? 0,
+          PA: paie.PA ?? 0,
+          mode_paie: paie.mode_paie,
+          chap: paie.chap ?? '',
+          art: paie.art ?? '',
+          date_effet: paie.date_effet ?? new Date().toISOString().slice(0, 10),
+          Id_agent: paie.Id_agent,
+          Id_enfant: paie.Id_enfant ?? null,
+        }
+
+        return updatePaie(id, payload)
+      })
+
+      await Promise.all(updateTasks)
+
+      const parts = [
+        prime.prime > 0 ? `Prime : ${prime.prime.toLocaleString('fr-MG')} Ar` : null,
+        prime.prime_speciale > 0 ? `Prime spéciale : ${prime.prime_speciale.toLocaleString('fr-MG')} Ar` : null,
+        prime.prime_fonction > 0 ? `Prime de fonction : ${prime.prime_fonction.toLocaleString('fr-MG')} Ar` : null,
+        prime.prime_fin_annee > 0 ? `Prime fin d'année : ${prime.prime_fin_annee.toLocaleString('fr-MG')} Ar` : null,
+      ].filter(Boolean)
+
+      alert(`✅ Primes appliquées à ${ids.length} bulletin(s).\n\n${parts.join('\n')}\n${prime.motif ? `\nMotif : ${prime.motif}` : ''}`)
+      setSelectedIds(new Set())
+      loadPaies()
+    } catch (err: any) {
+      alert(err.response?.data?.message ?? "Impossible d'appliquer les primes.")
+    }
   }
 
   const handleSave = async (data: PaiePayload) => {
@@ -343,8 +424,8 @@ export const PaiePage: React.FC = () => {
     catch (err: any) { alert(err.response?.data?.message ?? 'Erreur') }
   }
 
-  const goToHistorique = (annee: number, mois: number) => {
-    setActiveTab('all'); setFilterMois(mois)
+  const goToHistorique = (_annee: number, mois: number) => {
+    setFilterMois(mois)
     setShowHistorique(false); setHistAnnee(null)
   }
 
@@ -428,8 +509,7 @@ export const PaiePage: React.FC = () => {
         </div>
       </div>
 
-      {error && <div className="pp-alert">⚠ {error}<button onClick={() => setError(null)}>×</button></div>}
-
+    <div className="andrana">
       {/* ── Recherche ── */}
       <div className="pp-search-wrapper">
         <div className="pp-search-box">
@@ -438,27 +518,34 @@ export const PaiePage: React.FC = () => {
         </div>
       </div>
 
+          {filterMois && (
+    <button
+        className="ap-btn-secondary"
+        onClick={() => exportPdfMois(filterMois, currentYear)}
+        title={`Exporter tous les bulletins de ${MOIS_LONGS[filterMois - 1]}`}
+    >
+        <Download size={14} /> Exporter le mois
+    </button>
+)}
+
+      {error && <div className="pp-alert">⚠ {error}<button onClick={() => setError(null)}>×</button></div>}
+    </div>
       {/* ── Onglet + mois ── */}
       <div className="pp-toolbar">
-        <button className="pp-tab active pp-tab--flat" onClick={() => setFilterMois(null)}>
-          Tous les bulletins <span className="pp-tab-count">({groupedPaies[0]?.paies.length ?? 0})</span>
+        <button
+          className={`pp-tab pp-tab--flat ${filterMois === null ? 'active' : ''}`}
+          onClick={() => setFilterMois(null)}
+        >
+          Tous les bulletins <span className="pp-tab-count">({total})</span>
         </button>
         <div className="pp-toolbar-filter">
           <span className="pp-toolbar-year">{currentYear}</span>
-          {MOIS_COURTS.map((m, idx) => {
-            const moisNum = idx + 1
-            const isActive = filterMois === moisNum
-            const hasPaies = paies.some(p => p.mois === moisNum)
-            return (
-              <button key={m} onClick={() => setFilterMois(isActive ? null : moisNum)}
-                className={`pp-month-btn ${isActive ? 'active' : ''}`}
-                title={`${MOIS_LONGS[idx]} ${currentYear}`}
-              >
-                {m}
-                {hasPaies && !isActive && <span className="pp-month-dot" />}
-              </button>
-            )
-          })}
+          <MoisBar
+            currentYear={currentYear}
+            filterMois={filterMois}
+            onSelectMois={setFilterMois}
+            onBulletinsGeneres={loadPaies}
+          />
         </div>
 
         {/* Barre de sélection */}
@@ -584,10 +671,14 @@ export const PaiePage: React.FC = () => {
                   { label: 'Scolarité', value: viewPaie.scola },
                   { label: 'Remboursement', value: viewPaie.remboursement },
                   { label: 'Rappel', value: viewPaie.rappel },
+                  { label: 'Prime de fonction', value: viewPaie.prime_fonction },
                 ].map(({ label, value }) => (
                   <div key={label} className="pp-modal-field">
                     <div className="pp-modal-field-label">{label}</div>
-                    <div className="pp-modal-field-value">{(value ?? 0).toLocaleString('fr-MG')} Ar</div>
+                    <div className="pp-modal-field-value">
+                      {(value ?? 0).toLocaleString('fr-MG')}
+                      {label !== 'Indice' ? ' Ar' : ''}
+                    </div>
                   </div>
                 ))}
               </div>

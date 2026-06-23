@@ -29,19 +29,6 @@ class CarriereController extends Controller
         return new CarriereResource($carriere);
     }
 
-    public function update(StoreCarriereRequest $request, Carriere $carriere)
-    {
-        $carriere->update($request->validated());
-        $carriere->load(['agent.direction', 'agent.service', 'bareme']);
-        return new CarriereResource($carriere);
-    }
-
-    public function destroy(Carriere $carriere)
-    {
-        $carriere->delete();
-        return response()->json(['message' => 'Carrière supprimée avec succès']);
-    }
-
     public function parAgent(Agent $agent)
     {
         $carrieres = Carriere::where('Id_agent', $agent->Id_agent)
@@ -58,10 +45,23 @@ class CarriereController extends Controller
             ->with(['agent.direction', 'agent.service', 'bareme'])
             ->first();
 
-        if (! $carriere) {
+        if (!$carriere) {
             return response()->json(['message' => 'Aucune carrière actuelle trouvée'], 404);
         }
 
         return new CarriereResource($carriere);
+    }
+
+    public function update(StoreCarriereRequest $request, Carriere $carriere)
+    {
+        $carriere->update($request->validated());
+        $carriere->load(['agent.direction', 'agent.service', 'bareme']);
+        return new CarriereResource($carriere);
+    }
+
+    public function destroy(Carriere $carriere)
+    {
+        $carriere->delete();
+        return response()->json(['message' => 'Carrière supprimée avec succès']);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFonctionRequest;
 use App\Http\Resources\FonctionResource;
+use App\Models\Agent;
 use App\Models\Fonction;
 
 class FonctionController extends Controller
@@ -25,6 +26,16 @@ class FonctionController extends Controller
     {
         $fonction->load(['agent', 'direction']);
         return new FonctionResource($fonction);
+    }
+
+    public function parAgent(Agent $agent)
+    {
+        $fonctions = $agent->fonctions()
+            ->with(['direction', 'agent'])
+            ->orderByDesc('date_affectation')
+            ->paginate(15);
+
+        return FonctionResource::collection($fonctions);
     }
 
     public function update(StoreFonctionRequest $request, Fonction $fonction)

@@ -23,6 +23,7 @@ export interface CarriereFromAPI {
     Id_bareme:    number
     indice:       number
     salaire_base: number
+    salaire_mensuel: number
   }
   created_at?: string
 }
@@ -33,7 +34,7 @@ export interface CarrierePayload {
   grade:      string
   classe:     string
   echelon:    string
-  indice:     number
+  indice?:    number
   Id_agent:   number
   Id_bareme?: number
 }

@@ -1088,3 +1088,129 @@
   color: var(--pp-month-color, #5a6478);
   font-weight: var(--pp-month-weight, 400);
 }
+
+
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Ajouts CSS pour MoisBar — à ajouter dans src/styles/pages/PaiePage.css
+   ────────────────────────────────────────────────────────────────────────── */
+
+.pp-mois-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+.pp-mois-item-wrapper {
+  position: relative;
+}
+
+.pp-mois-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e2e2;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pp-mois-item:focus-visible {
+  outline: 2px solid #1a4d8c;
+  outline-offset: 2px;
+}
+
+.pp-mois-item:hover:not(:disabled) {
+  border-color: #1a4d8c;
+  background: #1a4d8c08;
+}
+
+.pp-mois-item.active {
+  background: #1a4d8c;
+  border-color: #1a4d8c;
+  color: #fff;
+}
+
+.pp-mois-item.pp-mois-courant {
+  border-color: #1a6b3c;
+  font-weight: 600;
+}
+
+.pp-mois-item.pp-mois-vide {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f5f5f5;
+}
+
+.pp-mois-item:disabled {
+  cursor: not-allowed;
+}
+
+/* Point d'indication : bulletin auto (bleu) vs avec prime (doré + étoile) */
+.pp-mois-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.pp-mois-dot--auto {
+  background: #1a4d8c;
+  width: 8px;
+  height: 8px;
+}
+
+.pp-mois-dot--prime {
+  background: #f5a623;
+  color: #fff;
+}
+
+/* Bouton "générer" discret qui apparaît pour un mois passé sans bulletins */
+.pp-mois-generer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: #1a4d8c12;
+  color: #1a4d8c;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pp-mois-generer-btn:hover {
+  background: #1a4d8c22;
+}
+
+.pp-spin {
+  animation: pp-spin-anim 0.8s linear infinite;
+}
+
+.andrana{
+    display: flex;
+    align-items: center; /* Alignement vertical */
+    gap: 12px;   
+    margin-bottom: 12px; /* Espace entre les éléments */
+}
+.pp-search-wrapper {
+    margin: 0; /* important */
+}
+
+.ap-btn-secondary {
+    margin: 0; /* important */
+}
+
+@keyframes pp-spin-anim {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

@@ -28,9 +28,9 @@ class StoreCarriereRequest extends FormRequest
             'grade'       => 'required|string|max:100',
             'classe'      => 'required|string|max:50',
             'echelon'     => 'required|string|max:50',
-            'indice'      => 'required|integer|min:1',
-            'Id_agent'   => 'required|exists:agents,Id_agent',
+            'Id_agent'    => 'required|exists:agents,Id_agent',
             'Id_bareme'   => 'required|exists:baremes,Id_bareme',
+            'indice'      => 'prohibited',
         ];
     }
 }

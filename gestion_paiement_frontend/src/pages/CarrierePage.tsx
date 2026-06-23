@@ -214,7 +214,7 @@ export const CarrierePage: React.FC = () => {
                   </td>
                   <td className="cr-cell-gray">
                     {c.bareme
-                      ? `${Number(c.bareme.salaire_base).toLocaleString('fr-MG')} Ar`
+                      ? `${Number(c.bareme.salaire_mensuel).toLocaleString('fr-MG')} Ar`
                       : '—'
                     }
                   </td>
@@ -312,9 +312,9 @@ export const CarrierePage: React.FC = () => {
                       <div className="cr-modal-field-value">{viewCarriere.bareme.indice}</div>
                     </div>
                     <div className="cr-modal-field">
-                      <div className="cr-modal-field-label">Salaire de base</div>
+                      <div className="cr-modal-field-label">Salaire mensuel</div>
                       <div className="cr-modal-field-value cr-modal-field-value--green">
-                        {Number(viewCarriere.bareme.salaire_base).toLocaleString('fr-MG')} Ar
+                        {Number(viewCarriere.bareme.salaire_mensuel).toLocaleString('fr-MG')} Ar
                       </div>
                     </div>
                   </div>

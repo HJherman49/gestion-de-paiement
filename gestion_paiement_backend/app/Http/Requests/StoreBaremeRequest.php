@@ -34,7 +34,7 @@ class StoreBaremeRequest extends FormRequest
         return [
             'Indice'          => ['required', 'integer', 'min:1', $indiceRule],
             'salaire_base'    => 'required|numeric|min:0',
-            'salaire_mensuel' => 'required|numeric|min:0',
+            'salaire_mensuel' => 'nullable|numeric|min:0',
             'anciennete'      => 'nullable|integer|min:0',
             'DIF'             => 'nullable|numeric|min:0',
             'rappell'         => 'nullable|numeric|min:0',

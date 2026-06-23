@@ -85,5 +85,27 @@ const exportPdf = async (id: number): Promise<void> => {
     }
 };
 
+export const exportPdfMois = async (mois: number, annee: number): Promise<void> => {
+    try {
+        const response = await api.get('/paies/export-mois', {
+            params: { mois, annee },
+            responseType: 'blob',
+        });
+
+        const url = window.URL.createObjectURL(
+            new Blob([response.data], { type: 'application/pdf' })
+        );
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `bulletins_${mois}_${annee}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Erreur export mois:', error);
+    }
+};
+
 export { sanctumApi, api, exportPdf };
 export default api;

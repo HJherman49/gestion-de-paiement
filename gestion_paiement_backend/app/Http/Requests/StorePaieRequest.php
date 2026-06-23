@@ -27,6 +27,7 @@ class StorePaieRequest extends FormRequest
             'annee'             => 'required|integer|digits:4',
             'salaire_brut'      => 'required|numeric|min:0',
             'prime'             => 'nullable|numeric|min:0',
+            'prime_fonction'    => 'nullable|numeric|min:0',
             'scola'             => 'nullable|numeric|min:0',
             'remboursement'     => 'nullable|numeric|min:0',
             'Indice'            => 'required|integer',
