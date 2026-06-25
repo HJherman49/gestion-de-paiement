@@ -158,9 +158,9 @@
   border-bottom: 1px solid var(--instat-gray-200);
 }
 
-.login-brand-icon {
-  width: 48px;
-  height: 48px;
+.login-brand-logo {
+  width: 60px;
+  height: 60px;
   border-radius: 12px;
   background: var(--instat-dark);
   color: #fff;
@@ -170,6 +170,7 @@
   font-size: 22px;
   font-weight: 900;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .login-brand-title {

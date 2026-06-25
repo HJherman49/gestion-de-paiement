@@ -1,12 +1,15 @@
-/* Dashboard Container */
+/* ── Container ── */
 .dashboard-container {
   padding: 28px 32px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header Section */
+/* ── Header ── */
 .dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 28px;
 }
 
@@ -20,228 +23,6 @@
 .dashboard-header p {
   font-size: 14px;
   color: var(--instat-gray-400);
-}
-
-/* Stat Cards Grid */
-.stat-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-/* Charts Row */
-.charts-row {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.chart-card {
-  background: #fff;
-  border: 1px solid var(--instat-gray-200);
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.chart-card h2 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--instat-dark);
-  margin-bottom: 16px;
-}
-
-/* Chart Header */
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.chart-header h2 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--instat-dark);
-}
-
-/* Chart Options Buttons */
-.chart-options {
-  display: flex;
-  gap: 8px;
-}
-
-.chart-btn {
-  padding: 5px 14px;
-  border-radius: 20px;
-  border: 1px solid;
-  background: transparent;
-  color: var(--instat-gray-600);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.chart-btn:hover {
-  border-color: var(--instat-gray-300);
-}
-
-.chart-btn.active {
-  border-color: var(--instat-dark);
-  background: var(--instat-dark);
-  color: #fff;
-}
-
-/* Bottom Row */
-.dashboard-bottom-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-/* Recrutements Section */
-.recrutements-section {
-  background: #fff;
-  border: 1px solid var(--instat-gray-200);
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.recrutements-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.recrutements-header h2 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--instat-dark);
-}
-
-.recrutements-badge {
-  background: #27ae6015;
-  color: var(--green);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* Recrutements List */
-.recrutements-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.recrutement-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: var(--instat-gray-50);
-  border-radius: 8px;
-  border: 1px solid var(--instat-gray-100);
-}
-
-.recrutement-info {
-  flex: 1;
-}
-
-.recrutement-poste {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--instat-dark);
-  margin-bottom: 2px;
-}
-
-.recrutement-details {
-  font-size: 11px;
-  color: var(--instat-gray-400);
-}
-
-.recrutement-status {
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.recrutement-status.en-cours {
-  background: #2980b918;
-  color: #2980b9;
-}
-
-.recrutement-status.entretiens {
-  background: #f39c1218;
-  color: #f39c12;
-}
-
-.recrutement-status.selection {
-  background: #27ae6018;
-  color: var(--green);
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .stat-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .charts-row {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-bottom-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-container {
-    padding: 16px 16px;
-  }
-
-  .stat-cards-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   AJOUTS — Dashboard connecté API
-   ═══════════════════════════════════════════════════════ */
-
-/* Loading state */
-.dashboard-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px;
-  gap: 16px;
-  color: var(--instat-gray-400);
-  font-size: 14px;
-}
-
-.dashboard-loading-icon {
-  animation: dash-spin 1s linear infinite;
-  color: var(--instat-dark);
-}
-
-@keyframes dash-spin { to { transform: rotate(360deg); } }
-
-/* Header actualiser */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 28px;
 }
 
 .dashboard-updated {
@@ -262,6 +43,8 @@
   gap: 6px;
   font-family: 'DM Sans', sans-serif;
   transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dashboard-refresh-btn:hover {
@@ -270,7 +53,7 @@
   color: var(--instat-dark);
 }
 
-/* Erreur */
+/* ── Erreur ── */
 .dashboard-error {
   background: #fee;
   border: 1px solid #fbb;
@@ -293,7 +76,34 @@
   margin-left: auto;
 }
 
-/* Stats secondaires */
+/* ── Loading ── */
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px;
+  gap: 16px;
+  color: var(--instat-gray-400);
+  font-size: 14px;
+}
+
+.dashboard-loading-icon {
+  animation: dash-spin 1s linear infinite;
+  color: var(--instat-dark);
+}
+
+@keyframes dash-spin { to { transform: rotate(360deg); } }
+
+/* ── Stat Cards ── */
+.stat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── Stats secondaires ── */
 .dashboard-secondary-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -335,7 +145,77 @@
   margin-top: 2px;
 }
 
-/* Légende graphique */
+/* ── Charts Row ── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chart-card {
+  background: #fff;
+  border: 1px solid var(--instat-gray-200);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-card h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--instat-dark);
+  margin-bottom: 16px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--instat-dark);
+  margin-bottom: 0;
+}
+
+.chart-options {
+  display: flex;
+  gap: 8px;
+}
+
+.chart-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--instat-gray-200);
+  background: transparent;
+  color: var(--instat-gray-600);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.chart-btn:hover { border-color: var(--instat-gray-400); }
+
+.chart-btn.active {
+  border-color: var(--instat-dark);
+  background: var(--instat-dark);
+  color: #fff;
+}
+
+/* ── Bottom Row ── */
+.dashboard-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Légende ── */
 .dashboard-legend {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -368,11 +248,10 @@
   color: var(--instat-dark);
 }
 
-/* Résumé RH */
+/* ── Résumé RH ── */
 .dashboard-rh-grid {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .dashboard-rh-item {
@@ -385,7 +264,6 @@
 }
 
 .dashboard-rh-item:last-child { border-bottom: none; }
-
 .dashboard-rh-label { color: var(--instat-gray-500); }
 
 .dashboard-rh-value {
@@ -394,7 +272,7 @@
   font-size: 15px;
 }
 
-/* Chart empty */
+/* ── Chart empty ── */
 .dashboard-chart-empty {
   display: flex;
   align-items: center;
@@ -405,12 +283,175 @@
   font-style: italic;
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
-  .dashboard-secondary-stats { grid-template-columns: repeat(2, 1fr); }
+/* ── Recrutements ── */
+.recrutements-section {
+  background: #fff;
+  border: 1px solid var(--instat-gray-200);
+  border-radius: 12px;
+  padding: 20px;
 }
 
+.recrutements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.recrutements-header h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--instat-dark);
+}
+
+.recrutements-badge {
+  background: #27ae6015;
+  color: var(--green);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.recrutements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.recrutement-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--instat-gray-50);
+  border-radius: 8px;
+  border: 1px solid var(--instat-gray-100);
+}
+
+.recrutement-info { flex: 1; }
+
+.recrutement-poste {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--instat-dark);
+  margin-bottom: 2px;
+}
+
+.recrutement-details {
+  font-size: 11px;
+  color: var(--instat-gray-400);
+}
+
+.recrutement-status {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.recrutement-status.en-cours  { background: #2980b918; color: #2980b9; }
+.recrutement-status.entretiens { background: #f39c1218; color: #f39c12; }
+.recrutement-status.selection  { background: #27ae6018; color: var(--green); }
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════ */
+
+/* Tablette large */
+@media (max-width: 1200px) {
+  .stat-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-secondary-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-bottom-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablette */
 @media (max-width: 768px) {
-  .dashboard-secondary-stats { grid-template-columns: 1fr 1fr; }
-  .dashboard-header { flex-direction: column; gap: 12px; }
+  .dashboard-container {
+    padding: 16px 12px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .dashboard-header h1 {
+    font-size: 18px;
+  }
+
+  .stat-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .dashboard-secondary-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dashboard-bottom-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .chart-options {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .chart-options::-webkit-scrollbar { display: none; }
+
+  .dashboard-legend {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card {
+    padding: 14px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 12px 8px;
+  }
+
+  .dashboard-secondary-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sec-value {
+    font-size: 18px;
+  }
+
+  .stat-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }

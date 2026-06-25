@@ -191,7 +191,7 @@ const App: React.FC = () => {
         // Passer les permissions pour filtrer la navbar
         userPermissions={user?.permissions ?? []}
       />
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1, minHeight: 'calc(100vh - 93px)' }}>
         {renderPage()}
       </main>
       {showAdmin && <AdminModal onClose={() => setShowAdmin(false)} />}

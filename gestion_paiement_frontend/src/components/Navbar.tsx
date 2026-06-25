@@ -13,7 +13,6 @@ interface NavbarProps {
   userPermissions: string[]
 }
 
-// ── Mapping page → permissions requises 
 const PAGE_PERMISSIONS: Record<string, string[]> = {
   dashboard:    [],
   agents:       ['agents.voir'],
@@ -25,7 +24,7 @@ const PAGE_PERMISSIONS: Record<string, string[]> = {
   fonction:     ['fonctions.voir'],
   preembauche:  ['preembauches.voir'],
   historique:   ['historique.voir'],
-  parametres:   [],  // tout le monde peut accéder aux paramètres
+  parametres:   [],
 }
 
 const canAccess = (page: string, permissions: string[]): boolean => {
@@ -34,7 +33,6 @@ const canAccess = (page: string, permissions: string[]): boolean => {
   return required.some(p => permissions.includes(p))
 }
 
-// ── Items de navigation 
 const ALL_NAV_ITEMS = [
   { id: 'dashboard',    label: 'Tableau de bord' },
   { id: 'agents',       label: 'Agents' },
@@ -54,24 +52,24 @@ const ALL_QUICK_LINKS = [
   { id: 'contact',    label: 'Contact' },
 ]
 
-// ── Composant 
-
 export const Navbar: React.FC<NavbarProps> = ({
   activePage, onNavigate, onOpenAdmin, user, onLogout, userPermissions,
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
+  const [isMenuOpen, setIsMenuOpen]     = useState(false)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [searchValue, setSearchValue]   = useState('')
 
-  // Filtrer les items selon les permissions
   const navItems   = ALL_NAV_ITEMS.filter(item => canAccess(item.id, userPermissions))
   const quickLinks = ALL_QUICK_LINKS.filter(item => canAccess(item.id, userPermissions))
 
-  const toggleMenu = () => setIsMenuOpen(prev => !prev)
+  const handleNavigate = (page: string) => {
+    onNavigate(page)
+    setIsMobileOpen(false)
+    setIsMenuOpen(false)
+  }
 
   return (
     <header className="navbar-header">
-
-      {/* Navigation principale */}
       <nav className="main-navbar">
         <div className="navbar-container">
 
@@ -84,12 +82,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="navbar-subtitle">Système RH · Madagascar</span>
           </div>
 
-          {/* Onglets principaux — filtrés par permissions */}
+          {/* Onglets — cachés sur mobile */}
           <div className="navbar-items">
             {navItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
+                onClick={() => handleNavigate(item.id)}
                 className={`nav-item-btn ${activePage === item.id ? 'active' : ''}`}
               >
                 {item.label}
@@ -100,12 +98,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Zone droite */}
           <div className="navbar-right">
 
-            <button className="menu-btn" onClick={toggleMenu} title="Accès rapide">
-              {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
+            {/* Bouton accès rapide — desktop */}
+            <button className="menu-btn desktop-only" onClick={() => setIsMenuOpen(v => !v)} title="Accès rapide">
+              {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
 
-            {/* Recherche */}
-            <div className="search-container">
+            {/* Recherche — cachée sur petit mobile */}
+            <div className="search-container desktop-search">
               <Search size={16} className="search-icon" />
               <input
                 type="text"
@@ -118,8 +117,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <NotificationPanel />
 
-            {/* Utilisateur — clic pour déconnecter */}
-            <div className="user-info" onClick={onLogout} title="Se déconnecter" style={{ cursor: 'pointer' }}>
+            {/* Avatar utilisateur */}
+            <div className="user-info" onClick={onLogout} title="Se déconnecter">
               <div className="user-text">
                 <div>{user?.name || 'Admin'}</div>
                 <div className="user-email">{user?.role || user?.email || 'Administrateur'}</div>
@@ -128,37 +127,88 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {(user?.name || 'A').charAt(0).toUpperCase()}
               </div>
             </div>
+
+            {/* Hamburger — mobile uniquement */}
+            <button
+              className="hamburger-btn"
+              onClick={() => setIsMobileOpen(v => !v)}
+              title="Menu"
+            >
+              {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
       </nav>
 
-      {/* Menu déroulant */}
+      {/* Dropdown accès rapide — desktop */}
       {isMenuOpen && (
-        <div className="dropdown-menu">
+        <div className="dropdown-menu" onClick={() => setIsMenuOpen(false)}>
           <div className="menu-section">
             <p className="menu-title">Accès rapide</p>
-
             {quickLinks.map(link => (
-              <a
-                key={link.id}
-                onClick={() => { onNavigate(link.id); setIsMenuOpen(false) }}
-                className="menu-link"
-                style={{ cursor: 'pointer' }}
-              >
+              <a key={link.id} onClick={() => handleNavigate(link.id)} className="menu-link">
                 {link.label}
               </a>
             ))}
-
-            {/* Bouton Admin — uniquement pour Administrateur */}
             {userPermissions.includes('utilisateurs.voir') && (
-              <button
-                onClick={() => { onOpenAdmin(); setIsMenuOpen(false) }}
-                className="menu-admin-btn"
-              >
+              <button onClick={() => { onOpenAdmin(); setIsMenuOpen(false) }} className="menu-admin-btn">
                 <Plus size={18} /> Admin
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Menu mobile complet */}
+      {isMobileOpen && (
+        <div className="mobile-menu">
+
+          {/* Recherche mobile */}
+          <div className="mobile-search">
+            <Search size={16} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Rechercher un agent..."
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              className="search-input"
+            />
+          </div>
+
+          {/* Navigation */}
+          <p className="mobile-section-title">Navigation</p>
+          {navItems.map(item => (
+            <a
+              key={item.id}
+              onClick={() => handleNavigate(item.id)}
+              className={`mobile-link ${activePage === item.id ? 'active' : ''}`}
+            >
+              {item.label}
+            </a>
+          ))}
+
+          <hr className="mobile-divider" />
+
+          {/* Liens rapides */}
+          <p className="mobile-section-title">Accès rapide</p>
+          {quickLinks.map(link => (
+            <a key={link.id} onClick={() => handleNavigate(link.id)} className="mobile-link">
+              {link.label}
+            </a>
+          ))}
+
+          {userPermissions.includes('utilisateurs.voir') && (
+            <button onClick={() => { onOpenAdmin(); setIsMobileOpen(false) }} className="mobile-admin-btn">
+              <Plus size={18} /> Admin
+            </button>
+          )}
+
+          <hr className="mobile-divider" />
+
+          {/* Déconnexion */}
+          <button onClick={onLogout} className="mobile-logout-btn">
+            Déconnexion · {user?.name}
+          </button>
         </div>
       )}
     </header>

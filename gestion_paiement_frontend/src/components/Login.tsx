@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { sanctumApi } from '../axios';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import '../styles/components/Login.css';
+import logoInstat from '../assets/logo-instat.png'; 
 
 interface LoginProps {
   onLogin: (token: string, user: any) => void;
@@ -53,8 +54,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="login-card">
 
         {/* Logo / Titre */}
-        <div className="login-brand">
-          <div className="login-brand-icon">S</div>
+       <div className="login-brand">
+          <img
+            src={logoInstat}
+            alt="Logo INSTAT"
+            className="login-brand-logo"
+          />
           <div>
             <h1 className="login-brand-title">SIRH — INSTAT</h1>
             <p className="login-brand-sub">Système d'Information des Ressources Humaines</p>
