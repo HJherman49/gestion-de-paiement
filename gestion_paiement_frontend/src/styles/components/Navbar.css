@@ -13,8 +13,8 @@
 }
 
 .navbar-container {
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 1275px;
+  margin: 0 60px;
   padding: 0px;
   height: 70px;
   display: flex;
@@ -26,30 +26,44 @@
 /* ── Logo ── */
 .navbar-logo {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   flex-shrink: 0;
+  margin-right: 12px;
+  margin-left: 5px;
 }
 
-.navbar-logo-content {
+.navbar-logo-circle {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+ background: #4B5563;      /* Gris foncé */
+  border: 2.5px solid #fff;
+  box-shadow:
+    0 2px 8px rgba(218, 209, 208, 0.2),
+    0 0 0 4px rgba(234, 230, 229, 0.08);
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   flex-shrink: 0;
+  transition: box-shadow 0.2s;
+}
+
+.navbar-logo-circle:hover {
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.35),
+    0 0 0 6px rgba(255, 255, 255, 0.12);
 }
 
 .logo-img {
-  height: 36px;
-  width: auto;
+  height: 54px;
+  width: 94px;
+  object-fit: contain;
 }
 
-.logo-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--instat-red);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 2px;
-}
+/* Supprimer les anciens styles logo devenus inutiles */
+.navbar-logo-content { display: none; }
+.logo-badge          { display: none; }
+.navbar-subtitle     { display: none; }
 
 .navbar-subtitle {
   font-size: 9px;

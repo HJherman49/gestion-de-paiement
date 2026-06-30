@@ -74,13 +74,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="navbar-container">
 
           {/* Logo */}
-          <div className="navbar-logo">
-            <div className="navbar-logo-content">
-              <img src={logoInstat} alt="INSTAT" className="logo-img" />
-              <span className="logo-badge">SIRH</span>
-            </div>
-            <span className="navbar-subtitle">Système RH · Madagascar</span>
-          </div>
+    <div className="navbar-logo">
+      <div className="navbar-logo-circle">
+        <img src={logoInstat} alt="INSTAT" className="logo-img" />
+      </div>
+    </div>
 
           {/* Onglets — cachés sur mobile */}
           <div className="navbar-items">
