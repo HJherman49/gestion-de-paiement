@@ -25,7 +25,7 @@ class PaieController extends Controller
 
         if ($request->filled('mois'))  $query->where('mois', $request->integer('mois'));
         if ($request->filled('annee')) $query->where('annee', $request->integer('annee'));
-        if ($request->filled('agent_id')) $query->where('Id_agent', $request->integer('agent_id'));
+        if ($request->filled('Id_agent')) $query->where('Id_agent', $request->integer('Id_agent'));
         if ($request->filled('statut')) $query->where('statut', $request->string('statut'));
 
         if ($request->filled('search')) {
@@ -56,7 +56,6 @@ class PaieController extends Controller
         $paie = Paie::with('agent')->findOrFail($id);
         return response()->json(['data' => new PaieResource($paie)]);
     }
-
     // ──────────────────────────────────────────────────────────────────────────
     // POST /api/v1/paies — création manuelle d'un bulletin
     // ──────────────────────────────────────────────────────────────────────────

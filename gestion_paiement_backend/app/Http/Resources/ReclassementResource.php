@@ -13,6 +13,7 @@ class ReclassementResource extends JsonResource
             'Id_reclass'            => $this->Id_reclass,
             'date_reclassement'     => $this->date_reclassement?->format('Y-m-d'),
             'categ_reclassement'    => $this->categ_reclassement,
+            'ancienne_categorie'     => $this->ancienne_categorie,
             'date_effet_solde'      => $this->date_effet_solde?->format('Y-m-d'),
             'date_effet_anciennete' => $this->date_effet_anciennete?->format('Y-m-d'),
             'observation'           => $this->observation,
