@@ -501,3 +501,80 @@
     display: none;
   }
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Ajouts CSS pour la validation de reclassement
+   À ajouter dans src/styles/pages/Reclassement.css
+   ────────────────────────────────────────────────────────────────────────── */
+
+.rp-badge-valide {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #27ae6018;
+  color: #1a6b3c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-badge-attente {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f5a62318;
+  color: #d68910;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rp-icon-btn--valider {
+  color: #1a6b3c;
+}
+
+.rp-icon-btn--valider:hover {
+  background: #27ae6018;
+}
+
+.rp-icon-btn--valider:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rp-btn-valider {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #1a6b3c;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rp-btn-valider:hover:not(:disabled) {
+  background: #155c32;
+}
+
+.rp-btn-valider:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rp-modal-banner-valide {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: #27ae6012;
+  color: #1a6b3c;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #27ae6020;
+}

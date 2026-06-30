@@ -49,11 +49,11 @@ class PaieResource extends JsonResource
             'Id_agent'       => $this->id_agent ?? $this->Id_agent,
             'Id_enfant'      => $this->Id_enfant,
 
-            'agent' => $this->whenLoaded('agent', fn() => [
+            'agent'       => $this->whenLoaded('agent', fn() => [
                 'Id_agent'       => $this->agent->Id_agent,
+                'num_matricule'  => $this->agent->num_matricule,
                 'nom'            => $this->agent->nom,
                 'prenoms'        => $this->agent->prenoms,
-                'num_matricule'  => $this->agent->num_matricule,
                 'civilite'       => $this->agent->civilite,
                 'direction'      => $this->agent->direction ? [
                     'Sigle' => $this->agent->direction->Sigle,

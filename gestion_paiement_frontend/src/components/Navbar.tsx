@@ -46,7 +46,6 @@ const ALL_NAV_ITEMS = [
 ]
 
 const ALL_QUICK_LINKS = [
-  { id: 'actualite',  label: 'Actualités' },
   { id: 'historique', label: 'Historique' },
   { id: 'parametres', label: 'Paramètres' },
   { id: 'contact',    label: 'Contact' },

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import {
   Plus, Eye, Pencil, Trash2, Search,
-  ChevronLeft, ChevronRight, RefreshCw, X, History,
+  ChevronLeft, ChevronRight, RefreshCw, X, History, CheckCircle, ShieldCheck,
 } from 'lucide-react'
 import {
-  getReclassements, createReclassement, updateReclassement, deleteReclassement,
+  getReclassements, createReclassement, updateReclassement, deleteReclassement, validerReclassement,
   type ReclassementFromAPI, type ReclassementPayload,
 } from '../services/reclassementService'
 import { ReclassementForm } from '../components/ReclassementForm'
@@ -21,6 +21,7 @@ const CATEGORIE_COLORS: Record<string, { bg: string; color: string }> = {
 }
 
 type ViewMode = 'liste' | 'historique'
+type viewMode = 'listes' | 'historiques'
 
 const fmt = (date: string | null | undefined) => {
   if (!date) return '—'
@@ -39,6 +40,7 @@ export const ReclassementPage: React.FC = () => {
   const [lastPage, setLastPage]             = useState(1)
   const [total, setTotal]                   = useState(0)
   const [error, setError]                   = useState<string | null>(null)
+  const [showHistoryInModal, setShowHistoryInModal] = useState(false);
 
   // ── Chargement
   const load = async () => {
@@ -87,7 +89,7 @@ export const ReclassementPage: React.FC = () => {
   const handleSave = async (data: ReclassementPayload) => {
     try {
       if (editReclassement) {
-        await updateReclassement(editReclassement.Id_reclassement, data)
+        await updateReclassement(editReclassement.Id_reclass, data)
         alert('Reclassement modifié avec succès')
       } else {
         await createReclassement(data)
@@ -115,6 +117,23 @@ export const ReclassementPage: React.FC = () => {
       load()
     } catch (err: any) {
       alert(err.response?.data?.message ?? 'Erreur lors de la suppression')
+    }
+  }
+
+  // ── Validation 
+  const [validatingId, setValidatingId] = useState<number | null>(null)
+  const handleValider = async (id: number) => {
+    if (!confirm('Valider ce reclassement ? La catégorie de carrière sera mise à jour définitivement.')) return
+    setValidatingId(id)
+    try {
+      await validerReclassement(id)
+      alert('Reclassement validé — catégorie de carrière mise à jour.')
+      load()
+      if (viewReclassement?.Id_reclass === id) setViewReclassement(null)
+    } catch (err: any) {
+      alert(err.response?.data?.message ?? 'Erreur lors de la validation')
+    } finally {
+      setValidatingId(null)
     }
   }
 
@@ -184,7 +203,7 @@ export const ReclassementPage: React.FC = () => {
           <table className="rp-table">
             <thead>
               <tr>
-                {['Agent', 'Grade / Carrière', 'Ancienne Cat.', 'Nouvelle Cat.', 'Date reclassement', 'Effet solde', 'Effet ancienneté', 'Actions'].map(h => (
+                {['Agent', 'Grade / Carrière', 'Ancienne Cat.', 'Nouvelle Cat.', 'Date reclassement', 'Effet solde', 'Effet ancienneté', 'Statut', 'Actions'].map(h => (
                   <th key={h}>{h}</th>
                 ))}
               </tr>
@@ -192,21 +211,21 @@ export const ReclassementPage: React.FC = () => {
             <tbody>
               {loading && (
                 <tr key="loading">
-                  <td colSpan={8} className="rp-empty">
+                  <td colSpan={9} className="rp-empty">
                     <span className="rp-spinner" /> Chargement...
                   </td>
                 </tr>
               )}
               {!loading && filtered.length === 0 && (
                 <tr key="empty">
-                  <td colSpan={8} className="rp-empty">Aucun reclassement trouvé</td>
+                  <td colSpan={9} className="rp-empty">Aucun reclassement trouvé</td>
                 </tr>
               )}
               {!loading && filtered.map((r, i) => {
                 const agent  = r.carriere?.agent
                 const catNew = CATEGORIE_COLORS[r.categ_reclassement] ?? { bg: '#f0f0f0', color: '#666' }
-                const catOld = CATEGORIE_COLORS[r.carriere?.Categorie ?? ''] ?? { bg: '#f0f0f0', color: '#666' }
-                const rowKey = r.Id_reclassement ?? `recl-${i}`
+                const catOld = CATEGORIE_COLORS[r.ancienne_categorie ?? r.carriere?.Categorie ?? ''] ?? { bg: '#f0f0f0', color: '#666' }
+                const rowKey = r.Id_reclass ?? `recl-${i}`
                 return (
                   <tr key={rowKey} className={`rp-row ${i % 2 === 0 ? 'rp-row-even' : 'rp-row-odd'}`}>
                     <td>
@@ -225,7 +244,7 @@ export const ReclassementPage: React.FC = () => {
                     </td>
                     <td>
                       <span className="rp-badge" style={{ background: catOld.bg, color: catOld.color }}>
-                        {r.carriere?.Categorie || '—'}
+                        {r.ancienne_categorie ?? r.carriere?.Categorie ?? '—'}
                       </span>
                     </td>
                     <td>
@@ -237,14 +256,33 @@ export const ReclassementPage: React.FC = () => {
                     <td className="rp-cell-date">{fmt(r.date_effet_solde)}</td>
                     <td className="rp-cell-date">{fmt(r.date_effet_anciennete)}</td>
                     <td>
+                      {r.valide_le ? (
+                        <span className="rp-badge-valide" title={`Validé le ${fmt(r.valide_le)}`}>
+                          <ShieldCheck size={13} /> Validé
+                        </span>
+                      ) : (
+                        <span className="rp-badge-attente">En attente</span>
+                      )}
+                    </td>
+                    <td>
                       <div className="rp-actions">
                         <button className="rp-icon-btn" title="Voir" onClick={() => setViewReclassement(r)}>
                           <Eye size={13} />
                         </button>
+                        {!r.valide_le && (
+                          <button
+                            className="rp-icon-btn rp-icon-btn--valider"
+                            title="Valider"
+                            disabled={validatingId === r.Id_reclass}
+                            onClick={() => handleValider(r.Id_reclass)}
+                          >
+                            <CheckCircle size={13} />
+                          </button>
+                        )}
                         <button className="rp-icon-btn rp-icon-btn--edit" title="Modifier" onClick={() => openEdit(r)}>
                           <Pencil size={13} />
                         </button>
-                        <button className="rp-icon-btn rp-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(r.Id_reclassement)}>
+                        <button className="rp-icon-btn rp-icon-btn--delete" title="Supprimer" onClick={() => handleDelete(r.Id_reclass)}>
                           <Trash2 size={13} />
                         </button>
                       </div>
@@ -308,9 +346,9 @@ export const ReclassementPage: React.FC = () => {
                   .sort((a, b) => new Date(a.date_reclassement).getTime() - new Date(b.date_reclassement).getTime())
                   .map((r, idx) => {
                     const catNew = CATEGORIE_COLORS[r.categ_reclassement]   ?? { bg: '#f0f0f0', color: '#666' }
-                    const catOld = CATEGORIE_COLORS[r.carriere?.Categorie ?? ''] ?? { bg: '#f0f0f0', color: '#666' }
+                    const catOld = CATEGORIE_COLORS[r.ancienne_categorie ?? r.carriere?.Categorie ?? ''] ?? { bg: '#f0f0f0', color: '#666' }
                     const isLast = idx === items.length - 1
-                      const tlKey = r.Id_reclassement ?? `tl-${idx}`
+                      const tlKey = r.Id_reclass ?? `tl-${idx}`
                       return (
                         <div key={tlKey} className="rp-timeline-item">
                         {/* Ligne verticale */}
@@ -325,7 +363,7 @@ export const ReclassementPage: React.FC = () => {
                             <div className="rp-timeline-date">{fmt(r.date_reclassement)}</div>
                             <div className="rp-timeline-transition">
                               <span className="rp-badge" style={{ background: catOld.bg, color: catOld.color }}>
-                                {r.carriere?.Categorie || '?'}
+                                {r.ancienne_categorie || r.carriere?.Categorie || '?'}
                               </span>
                               <span className="rp-timeline-arrow">→</span>
                               <span className="rp-badge" style={{ background: catNew.bg, color: catNew.color }}>
@@ -335,7 +373,7 @@ export const ReclassementPage: React.FC = () => {
                             <div className="rp-timeline-actions">
                               <button className="rp-icon-btn" onClick={() => setViewReclassement(r)} title="Voir"><Eye size={12} /></button>
                               <button className="rp-icon-btn rp-icon-btn--edit" onClick={() => openEdit(r)} title="Modifier"><Pencil size={12} /></button>
-                              <button className="rp-icon-btn rp-icon-btn--delete" onClick={() => handleDelete(r.Id_reclassement)} title="Supprimer"><Trash2 size={12} /></button>
+                              <button className="rp-icon-btn rp-icon-btn--delete" onClick={() => handleDelete(r.Id_reclass)} title="Supprimer"><Trash2 size={12} /></button>
                             </div>
                           </div>
                           <div className="rp-timeline-details">
@@ -357,32 +395,45 @@ export const ReclassementPage: React.FC = () => {
       {/* Modal détail */}
       {viewReclassement && (
         <div className="rp-modal-overlay">
-          <div className="rp-modal">
+          <div className="rp-modal rp-modal--large">
             <div className="rp-modal-header">
               <div className="rp-modal-header-content">
                 <div className="rp-modal-icon"><History size={20} /></div>
                 <div>
-                  <div className="rp-modal-title">Reclassement #{viewReclassement.Id_reclassement}</div>
+                  <div className="rp-modal-title">Reclassement #{viewReclassement.Id_reclass}</div>
                   <div className="rp-modal-sub">
                     {viewReclassement.carriere?.agent
-                      ? `${viewReclassement.carriere.agent.civilite} ${viewReclassement.carriere.agent.nom} ${viewReclassement.carriere.agent.prenoms}`
+                      ? `${viewReclassement.carriere.agent.civilite} ${viewReclassement.carriere.agent.nom} ${viewReclassement.carriere.agent.prenoms || ''}`
                       : '—'}
                   </div>
                 </div>
               </div>
-              <button className="rp-modal-close" onClick={() => setViewReclassement(null)} title="Fermer">
+              <button 
+                className="rp-modal-close" 
+                onClick={() => {
+                  setViewReclassement(null);
+                  setShowHistoryInModal(false);
+                }} 
+                title="Fermer"
+              >
                 <X size={16} />
               </button>
             </div>
 
+            {viewReclassement.valide_le && (
+              <div className="rp-modal-banner-valide">
+                <ShieldCheck size={14} /> Validé le {fmt(viewReclassement.valide_le)}
+              </div>
+            )}
+
             <div className="rp-modal-body">
-              {/* Transition */}
+              {/* Transition principale */}
               <div className="rp-modal-transition">
                 <div className="rp-modal-cat-block">
                   <span className="rp-modal-cat-label">Catégorie précédente</span>
                   <span className="rp-badge rp-badge--lg"
-                    style={CATEGORIE_COLORS[viewReclassement.carriere?.Categorie ?? ''] ?? { background: '#f0f0f0', color: '#666' }}>
-                    {viewReclassement.carriere?.Categorie || '—'}
+                    style={CATEGORIE_COLORS[viewReclassement.ancienne_categorie ?? viewReclassement.carriere?.Categorie ?? ''] ?? { background: '#f0f0f0', color: '#666' }}>
+                    {viewReclassement.ancienne_categorie || viewReclassement.carriere?.Categorie || '—'}
                   </span>
                 </div>
                 <span className="rp-modal-arrow">→</span>
@@ -395,18 +446,18 @@ export const ReclassementPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Détails */}
-              <p className="rp-modal-section-title">Dates</p>
+              {/* Détails du reclassement actuel */}
+              <p className="rp-modal-section-title">Détails du reclassement</p>
               <div className="rp-modal-grid">
                 {[
-                  { label: 'Date de reclassement',    value: fmt(viewReclassement.date_reclassement) },
-                  { label: 'Date d\'effet solde',      value: fmt(viewReclassement.date_effet_solde) },
-                  { label: 'Date d\'effet ancienneté', value: fmt(viewReclassement.date_effet_anciennete) },
-                  { label: 'Carrière (grade)',         value: viewReclassement.carriere?.grade || '—' },
-                ].map(({ label, value }) => (
-                  <div key={label} className="rp-modal-field">
-                    <div className="rp-modal-field-label">{label}</div>
-                    <div className="rp-modal-field-value">{value}</div>
+                  { id: 'date_reclassement', label: 'Date de reclassement', value: fmt(viewReclassement.date_reclassement) },
+                  { id: 'date_effet_solde', label: 'Date d\'effet solde', value: fmt(viewReclassement.date_effet_solde) },
+                  { id: 'date_effet_anciennete', label: 'Date d\'effet ancienneté', value: fmt(viewReclassement.date_effet_anciennete) },
+                  { id: 'grade', label: 'Grade / Carrière', value: viewReclassement.carriere?.grade || '—' },
+                ].map((item) => (
+                  <div key={item.id} className="rp-modal-field">
+                    <div className="rp-modal-field-label">{item.label}</div>
+                    <div className="rp-modal-field-value">{item.value}</div>
                   </div>
                 ))}
               </div>
@@ -417,18 +468,117 @@ export const ReclassementPage: React.FC = () => {
                   <p className="rp-modal-obs-text">{viewReclassement.observation}</p>
                 </div>
               )}
+
+              {/* Historique de l'agent */}
+              {showHistoryInModal && (
+                <>
+                  <p className="rp-modal-section-title">Historique complet de l’agent</p>
+                  {(() => {
+                    const agent = viewReclassement.carriere?.agent;
+                    if (!agent) return <p className="rp-empty">Aucune information d’agent disponible</p>;
+
+                    const agentReclassements = reclassements
+                      .filter(r => r.carriere?.agent?.Id_agent === agent.Id_agent)
+                      .sort((a, b) => new Date(b.date_reclassement).getTime() - new Date(a.date_reclassement).getTime());
+
+                    return agentReclassements.length > 0 ? (
+                      <div className="rp-timeline">
+                        {agentReclassements.map((r) => (
+                          <div 
+                            key={`history-${r.Id_reclass}`}   // ← Clé ultra sûre
+                            className={`rp-timeline-item ${r.Id_reclass === viewReclassement.Id_reclass ? 'rp-timeline-item--current' : ''}`}
+                          >
+                            <div className="rp-timeline-line-wrapper">
+                              <div 
+                                className={`rp-timeline-dot 
+                                  ${r.Id_reclass === agentReclassements[agentReclassements.length - 1]?.Id_reclass ? 'latest' : ''} 
+                                  ${r.Id_reclass === viewReclassement.Id_reclass ? 'current' : ''}`} 
+                              />
+                              {r.Id_reclass !== agentReclassements[agentReclassements.length - 1]?.Id_reclass && (
+                                <div className="rp-timeline-line" />
+                              )}
+                            </div>
+
+                            <div className="rp-timeline-content">
+                              <div className="rp-timeline-header">
+                                <div className="rp-timeline-date">{fmt(r.date_reclassement)}</div>
+                                <div className="rp-timeline-transition">
+                                  <span className="rp-badge" 
+                                    style={CATEGORIE_COLORS[r.ancienne_categorie ?? r.carriere?.Categorie ?? ''] ?? { background: '#f0f0f0', color: '#666' }}>
+                                    {r.ancienne_categorie || r.carriere?.Categorie || '?'}
+                                  </span>
+                                  <span className="rp-timeline-arrow">→</span>
+                                  <span className="rp-badge" 
+                                    style={CATEGORIE_COLORS[r.categ_reclassement] ?? { background: '#f0f0f0', color: '#666' }}>
+                                    {r.categ_reclassement}
+                                  </span>
+                                </div>
+                                {r.Id_reclass === viewReclassement.Id_reclass && (
+                                  <span className="rp-current-badge">Actuel</span>
+                                )}
+                              </div>
+                              <div className="rp-timeline-details">
+                                <span>💰 Effet solde : <strong>{fmt(r.date_effet_solde)}</strong></span>
+                                <span>⏳ Effet ancienneté : <strong>{fmt(r.date_effet_anciennete)}</strong></span>
+                                {r.observation && <span>📝 {r.observation}</span>}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="rp-empty">Aucun historique trouvé pour cet agent.</p>
+                    );
+                  })()}
+                </>
+              )}
             </div>
 
+            {/* Footer */}
             <div className="rp-modal-footer">
-              <button className="rp-btn-secondary" onClick={() => setViewReclassement(null)}>Fermer</button>
-              <button className="rp-btn-primary" onClick={() => { setViewReclassement(null); openEdit(viewReclassement) }}>
+              <button 
+                className="rp-btn-secondary"
+                onClick={() => setShowHistoryInModal(prev => !prev)}
+              >
+                <History size={14} />
+                {showHistoryInModal ? 'Masquer l’historique' : 'Voir l’historique'}
+              </button>
+
+              <button 
+                className="rp-btn-secondary" 
+                onClick={() => {
+                  setViewReclassement(null);
+                  setShowHistoryInModal(false);
+                }}
+              >
+                Fermer
+              </button>
+
+              {!viewReclassement.valide_le && (
+                <button
+                  className="rp-btn-valider"
+                  disabled={validatingId === viewReclassement.Id_reclass}
+                  onClick={() => handleValider(viewReclassement.Id_reclass)}
+                >
+                  <CheckCircle size={14} />
+                  {validatingId === viewReclassement.Id_reclass ? 'Validation...' : 'Valider le reclassement'}
+                </button>
+              )}
+
+              <button 
+                className="rp-btn-primary" 
+                onClick={() => { 
+                  setViewReclassement(null); 
+                  setShowHistoryInModal(false);
+                  openEdit(viewReclassement); 
+                }}
+              >
                 <Pencil size={13} /> Modifier
               </button>
             </div>
           </div>
         </div>
-      )}
-
+      )}      
       {/* Formulaire */}
       {showForm && (
         <ReclassementForm

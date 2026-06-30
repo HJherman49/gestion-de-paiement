@@ -1227,3 +1227,24 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+
+
+.rp-modal--large {
+  max-width: 900px;
+  width: 90%;
+}
+
+.rp-timeline-item--current {
+  background: #f0f8ff;
+  border-left: 4px solid #1a6b3c;
+}
+
+.rp-current-badge {
+  background: #1a6b3c;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}

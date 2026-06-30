@@ -106,7 +106,7 @@ export const ReclassementForm: React.FC<ReclassementFormProps> = ({
             </h2>
             <p className="rf-header-sub">
               {reclassement
-                ? `Reclassement #${reclassement.Id_reclassement}`
+                ? `Reclassement #${reclassement.Id_reclass}`
                 : 'Enregistrer un reclassement de carrière'}
             </p>
           </div>
